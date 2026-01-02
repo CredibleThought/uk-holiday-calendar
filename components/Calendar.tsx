@@ -31,7 +31,11 @@ const Calendar: React.FC<CalendarProps> = ({ year, publicHolidays, schoolHoliday
         } else {
           // Only check school holiday if not public, because public takes precedence visually
           const isSchool = schoolHolidays.some(h => isDateInRange(dateStr, h.startDate, h.endDate));
-          if (isSchool) {
+          
+          // Exclude weekends (0=Sunday, 6=Saturday) from the count
+          const isWeekend = date.getDay() === 0 || date.getDay() === 6;
+
+          if (isSchool && !isWeekend) {
             sCount++;
           }
         }

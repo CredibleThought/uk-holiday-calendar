@@ -1,11 +1,11 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import Controls from './components/Controls';
 import Calendar from './components/Calendar';
-import { fetchBankHolidays, fetchSchoolHolidays } from './services/holidayService';
+import { fetchBankHolidays, fetchSchoolHolidays, getDefaultSchoolHolidays } from './services/holidayService';
 import { Country, Holiday, SchoolHoliday } from './types';
 
 const App: React.FC = () => {
-  const [year, setYear] = useState<number>(2025);
+  const [year, setYear] = useState<number>(2026);
   const [country, setCountry] = useState<Country>('england-and-wales');
   const [postcode, setPostcode] = useState<string>('');
   
@@ -15,13 +15,19 @@ const App: React.FC = () => {
   const [loading, setLoading] = useState<boolean>(true);
   const [searchingSchool, setSearchingSchool] = useState<boolean>(false);
 
-  // Initial Data Load
+  // Initial Data Load & Country Change
   const loadData = useCallback(async () => {
     setLoading(true);
+    
+    // 1. Fetch Bank Holidays
     const bankHolidays = await fetchBankHolidays(country);
-    // Filter for the selected year roughly, but keep surrounding for safety if needed. 
-    // The grid checks date strings, so extra data is fine.
     setPublicHolidays(bankHolidays);
+
+    // 2. Set Default School Holidays for the selected Country
+    const defaultSchoolHolidays = getDefaultSchoolHolidays(country);
+    const sortedDefaults = [...defaultSchoolHolidays].sort((a, b) => a.startDate.localeCompare(b.startDate));
+    setSchoolHolidays(sortedDefaults);
+
     setLoading(false);
   }, [country]);
 
