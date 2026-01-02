@@ -142,7 +142,7 @@ const App: React.FC = () => {
          </div>
       </nav>
 
-      <main className="max-w-6xl mx-auto px-4 sm:px-6">
+      <main className="max-w-6xl mx-auto px-4 sm:px-6 print:px-0 print:max-w-none">
         <Controls
           year={year}
           country={country}

@@ -19,21 +19,21 @@ const Month: React.FC<MonthProps> = ({ year, monthIndex, publicHolidays, schoolH
   const gridCells = [...paddedSlots, ...days];
 
   return (
-    <div className="border border-slate-300 bg-white text-xs">
+    <div className="border border-slate-300 print:border bg-white text-xs">
       {/* Header */}
-      <div className="flex bg-[#005ea5] text-white">
-        <div className="py-1 px-3 font-bold text-lg bg-[#004f8c] w-12 flex items-center justify-center">
+      <div className="flex bg-[#005ea5] text-white print:bg-[#005ea5]">
+        <div className="py-1 px-3 print:py-2 print:px-3 font-bold text-lg print:text-lg bg-[#004f8c] w-12 print:w-10 flex items-center justify-center">
            {String(monthIndex + 1).padStart(2, '0')}
         </div>
-        <div className="flex-1 py-1 px-3 font-semibold text-lg flex items-center">
+        <div className="flex-1 py-1 px-3 print:py-2 print:px-3 font-semibold text-lg print:text-lg flex items-center">
           {MONTH_NAMES[monthIndex]}
         </div>
       </div>
 
       {/* Weekday Headers */}
-      <div className="grid grid-cols-7 border-b border-slate-200 bg-gray-50">
+      <div className="grid grid-cols-7 border-b border-slate-200 bg-gray-50 print:border-b">
         {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map(d => (
-          <div key={d} className="py-1 text-center font-semibold text-[10px] text-slate-700">
+          <div key={d} className="py-1 print:py-0.5 text-center font-semibold text-[10px] print:text-[10px] text-slate-700">
             {d}
           </div>
         ))}
@@ -43,7 +43,7 @@ const Month: React.FC<MonthProps> = ({ year, monthIndex, publicHolidays, schoolH
       <div className="grid grid-cols-7 auto-rows-fr">
         {gridCells.map((date, idx) => {
           if (!date) {
-            return <div key={`empty-${idx}`} className="border-b border-r border-slate-100 h-8" />;
+            return <div key={`empty-${idx}`} className="border-b border-r border-slate-100 print:border h-8 print:h-6" />;
           }
 
           const dateStr = formatDate(date);
@@ -73,16 +73,16 @@ const Month: React.FC<MonthProps> = ({ year, monthIndex, publicHolidays, schoolH
           return (
             <div 
               key={dateStr} 
-              className={`h-8 flex items-center justify-center border-b border-r border-slate-100 relative ${bgClass} ${tooltip ? 'cursor-help' : 'cursor-default'}`}
+              className={`h-8 print:h-6 flex items-center justify-center border-b border-r border-slate-100 print:border relative ${bgClass} ${tooltip ? 'cursor-help' : 'cursor-default'}`}
               title={tooltip}
             >
-              <span>{dayNum}</span>
+              <span className="print:text-xs">{dayNum}</span>
             </div>
           );
         })}
         {/* Fill remaining cells of the last row to maintain grid borders if needed */}
          {Array.from({ length: (7 - (gridCells.length % 7)) % 7 }).map((_, i) => (
-             <div key={`end-empty-${i}`} className="border-b border-r border-slate-100 h-8 bg-gray-50/30" />
+             <div key={`end-empty-${i}`} className="border-b border-r border-slate-100 print:border h-8 print:h-6 bg-gray-50/30" />
          ))}
       </div>
     </div>
