@@ -54,22 +54,38 @@ const Month: React.FC<MonthProps> = ({ year, monthIndex, publicHolidays, schoolH
           // Check holidays
           // Find specific holiday objects to retrieve their names (title or term)
           const publicHoliday = publicHolidays.find(h => h.date === dateStr);
-          // Only search for school holiday if not a public holiday (visual priority)
-          const schoolHoliday = !publicHoliday
-            ? schoolHolidays.find(h => isDateInRange(dateStr, h.startDate, h.endDate))
-            : undefined;
+
+          // Find ALL matching school holidays to check for overlaps (Always check now, to allow public + user overlap)
+          const matchingSchoolHolidays = schoolHolidays.filter(h => isDateInRange(dateStr, h.startDate, h.endDate));
+
+          const hasStandardSchoolHoliday = matchingSchoolHolidays.some(h => !h.isManual);
+          const hasManualHoliday = matchingSchoolHolidays.some(h => h.isManual);
 
           let bgClass = '';
           let tooltip = '';
 
-          if (publicHoliday) {
+          if (publicHoliday && hasManualHoliday) {
+            // Overlap: Public + User (Gold / Purple)
+            bgClass = 'bg-[linear-gradient(135deg,#ffcc00_50%,#d8b4fe_50%)] text-black dark:bg-[linear-gradient(135deg,#b45309_50%,#581c87_50%)] dark:text-white';
+            const manualTerm = matchingSchoolHolidays.find(h => h.isManual)?.term;
+            tooltip = `${publicHoliday.title} & ${manualTerm} (User Added)`;
+          } else if (publicHoliday) {
             bgClass = 'bg-[#ffcc00] font-bold text-black dark:bg-[#b45309] dark:text-white'; // Public holiday: Gold/Amber
             tooltip = publicHoliday.title;
-          } else if (schoolHoliday) {
-            bgClass = schoolHoliday.isManual
-              ? 'bg-purple-300 text-purple-900 border border-purple-400 dark:bg-purple-900 dark:text-purple-100 dark:border-purple-700' // User added: Purple
-              : 'bg-[#89d6e8] text-black dark:bg-[#155e75] dark:text-white'; // Default School holiday: Cyan/Blue
-            tooltip = schoolHoliday.term + (schoolHoliday.isManual ? ' (User Added)' : '');
+          } else if (hasStandardSchoolHoliday && hasManualHoliday) {
+            // Overlap: Standard + User (Blue / Purple)
+            bgClass = 'bg-[linear-gradient(135deg,#89d6e8_50%,#d8b4fe_50%)] text-black dark:bg-[linear-gradient(135deg,#155e75_50%,#581c87_50%)] dark:text-white';
+            const standardTerm = matchingSchoolHolidays.find(h => !h.isManual)?.term;
+            const manualTerm = matchingSchoolHolidays.find(h => h.isManual)?.term;
+            tooltip = `${standardTerm} & ${manualTerm} (User Added)`;
+          } else if (hasStandardSchoolHoliday) {
+            const h = matchingSchoolHolidays.find(h => !h.isManual)!;
+            bgClass = 'bg-[#89d6e8] text-black dark:bg-[#155e75] dark:text-white'; // Default School holiday: Cyan/Blue
+            tooltip = h.term;
+          } else if (hasManualHoliday) {
+            const h = matchingSchoolHolidays.find(h => h.isManual)!;
+            bgClass = 'bg-purple-300 text-purple-900 border border-purple-400 dark:bg-purple-900 dark:text-purple-100 dark:border-purple-700'; // User added: Purple
+            tooltip = h.term + ' (User Added)';
           } else if (date.getDay() === 0 || date.getDay() === 6) {
             bgClass = 'bg-slate-50 text-slate-500 dark:bg-slate-700/30 dark:text-slate-500'; // Weekend light gray
           }
