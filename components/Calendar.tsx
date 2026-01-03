@@ -28,22 +28,27 @@ const Calendar: React.FC<CalendarProps> = ({ year, publicHolidays, schoolHoliday
       for (const date of days) {
         const dateStr = formatDate(date);
         const isPublic = publicHolidays.some(h => h.date === dateStr);
+        const isWeekend = date.getDay() === 0 || date.getDay() === 6;
+
+        // Find all school holidays for this date
+        const matchingSchoolHolidays = schoolHolidays.filter(h => isDateInRange(dateStr, h.startDate, h.endDate));
+        const hasStandard = matchingSchoolHolidays.some(h => !h.isManual);
+        const hasManual = matchingSchoolHolidays.some(h => h.isManual);
 
         if (isPublic) {
           pCount++;
-        } else {
-          // Only check school holiday if not public, because public takes precedence visually
-          const isSchool = schoolHolidays.some(h => isDateInRange(dateStr, h.startDate, h.endDate));
+        }
 
-          // Exclude weekends (0=Sunday, 6=Saturday) from the count
-          const isWeekend = date.getDay() === 0 || date.getDay() === 6;
+        if (!isWeekend) {
+          // User Added Count: Count all user-added days excluding weekends, even if overlapping with public/standard
+          if (hasManual) {
+            mCount++;
+          }
 
-          if (isSchool && !isWeekend) {
-            if (schoolHolidays.find(h => isDateInRange(dateStr, h.startDate, h.endDate))?.isManual) {
-              mCount++;
-            } else {
-              sCount++;
-            }
+          // School Holiday Count: Count standard school holidays, excluding weekends and public holidays
+          // (standard school holidays are usually superseded by public holidays in counts)
+          if (hasStandard && !isPublic) {
+            sCount++;
           }
         }
       }
