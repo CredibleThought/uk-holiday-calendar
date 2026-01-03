@@ -3,6 +3,7 @@ import Controls from './components/Controls';
 import Calendar from './components/Calendar';
 import { fetchBankHolidays, fetchSchoolHolidays, getDefaultSchoolHolidays } from './services/holidayService';
 import { Country, Holiday, SchoolHoliday, Theme } from './types';
+import { Coffee } from 'lucide-react';
 
 const App: React.FC = () => {
   const [year, setYear] = useState<number>(2026);
@@ -157,6 +158,16 @@ const App: React.FC = () => {
           <div className="text-sm text-gray-300">
             Official Gov.uk Data Compatible
           </div>
+          <a
+            href="https://buymeacoffee.com/stevefernandes"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="hidden sm:flex items-center gap-2 bg-[#FFDD00] text-black px-4 py-2 rounded-full font-['Cookie'] text-2xl hover:bg-[#ffea00] transition-colors shadow-sm ml-4 border-2 border-black/10"
+            title="Support the developer"
+          >
+            <Coffee size={20} className="text-black/80" />
+            Buy me a coffee
+          </a>
         </div>
       </nav>
 

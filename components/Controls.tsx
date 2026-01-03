@@ -151,7 +151,7 @@ const Controls: React.FC<ControlsProps> = ({
           {/* Theme Toggle */}
           <button
             onClick={() => onThemeChange(theme === 'light' ? 'dark' : 'light')}
-            className="flex items-center justify-center p-2 rounded-md transition-all border bg-white border-slate-300 text-slate-700 hover:bg-slate-50 dark:bg-slate-700 dark:border-slate-600 dark:text-slate-200 dark:hover:bg-slate-600"
+            className="flex items-center justify-center p-2 rounded-md transition-all border bg-white border-slate-300 text-slate-700 hover:bg-slate-50 dark:bg-slate-600 dark:border-slate-500 dark:text-white dark:hover:bg-slate-500"
             title={theme === 'light' ? "Switch to Dark Mode" : "Switch to Light Mode"}
           >
             {theme === 'light' ? <Moon size={18} /> : <Sun size={18} />}
@@ -161,7 +161,7 @@ const Controls: React.FC<ControlsProps> = ({
           <div className="flex gap-1 border-r border-slate-200 pr-2 mr-1">
             <button
               onClick={onSaveConfig}
-              className="flex items-center gap-1.5 px-3 py-2 bg-white border border-slate-300 rounded-md text-slate-700 hover:bg-slate-50 transition-colors dark:bg-slate-700 dark:border-slate-600 dark:text-slate-200 dark:hover:bg-slate-600"
+              className="flex items-center gap-1.5 px-3 py-2 bg-white border border-slate-300 rounded-md text-slate-700 hover:bg-slate-50 transition-colors dark:bg-slate-600 dark:border-slate-500 dark:text-white dark:hover:bg-slate-500"
               title="Save Configuration to File"
             >
               <Download size={16} />
@@ -177,7 +177,7 @@ const Controls: React.FC<ControlsProps> = ({
             />
             <button
               onClick={triggerLoad}
-              className="flex items-center gap-1.5 px-3 py-2 bg-white border border-slate-300 rounded-md text-slate-700 hover:bg-slate-50 transition-colors"
+              className="flex items-center gap-1.5 px-3 py-2 bg-white border border-slate-300 rounded-md text-slate-700 hover:bg-slate-50 transition-colors dark:bg-slate-600 dark:border-slate-500 dark:text-white dark:hover:bg-slate-500"
               title="Load Configuration from File"
             >
               <Upload size={16} />
@@ -188,7 +188,7 @@ const Controls: React.FC<ControlsProps> = ({
           {/* Edit Toggle */}
           <button
             onClick={() => setShowManual(!showManual)}
-            className={`flex items-center gap-2 px-3 py-2 rounded-md transition-all border ${showManual ? 'bg-blue-50 border-blue-200 text-blue-700 dark:bg-blue-900/30 dark:border-blue-800 dark:text-blue-300' : 'bg-white border-slate-300 text-slate-700 hover:bg-slate-50 dark:bg-slate-700 dark:border-slate-600 dark:text-slate-200 dark:hover:bg-slate-600'}`}
+            className={`flex items-center gap-2 px-3 py-2 rounded-md transition-all border ${showManual ? 'bg-blue-50 border-blue-200 text-blue-700 dark:bg-blue-900/40 dark:border-blue-700 dark:text-blue-100' : 'bg-white border-slate-300 text-slate-700 hover:bg-slate-50 dark:bg-slate-600 dark:border-slate-500 dark:text-white dark:hover:bg-slate-500'}`}
             title="Edit Dates Manually"
           >
             <Edit2 size={16} />
@@ -199,7 +199,7 @@ const Controls: React.FC<ControlsProps> = ({
           {/* Print */}
           <button
             onClick={handlePrint}
-            className="flex items-center gap-2 bg-slate-800 hover:bg-slate-900 text-white px-4 py-2 rounded-md transition-all shadow-md hover:shadow-lg"
+            className="flex items-center gap-2 bg-slate-800 hover:bg-slate-900 text-white px-4 py-2 rounded-md transition-all shadow-md hover:shadow-lg dark:bg-blue-600 dark:hover:bg-blue-500"
           >
             <Printer size={18} />
             <span>Print</span>
