@@ -12,6 +12,7 @@ export interface SchoolHoliday {
   startDate: string; // YYYY-MM-DD
   endDate: string; // YYYY-MM-DD
   term: string;
+  isManual?: boolean;
 }
 
 export interface CalendarData {

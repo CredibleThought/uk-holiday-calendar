@@ -19,6 +19,13 @@ interface ControlsProps {
   isSearching: boolean;
   theme: Theme;
   onThemeChange: (t: Theme) => void;
+  // Lifted State Props
+  showManual: boolean;
+  setShowManual: (show: boolean) => void;
+  newHoliday: SchoolHoliday;
+  setNewHoliday: (h: SchoolHoliday) => void;
+  editingHoliday: SchoolHoliday | null;
+  setEditingHoliday: (h: SchoolHoliday | null) => void;
 }
 
 
@@ -39,10 +46,14 @@ const Controls: React.FC<ControlsProps> = ({
   isSearching,
   theme,
   onThemeChange,
+  showManual,
+  setShowManual,
+  newHoliday,
+  setNewHoliday,
+  editingHoliday,
+  setEditingHoliday,
 }) => {
-  const [showManual, setShowManual] = useState(false);
-  const [newHoliday, setNewHoliday] = useState<SchoolHoliday>({ startDate: '', endDate: '', term: '' });
-  const [editingHoliday, setEditingHoliday] = useState<SchoolHoliday | null>(null);
+  // Local state removed, using props now
 
   // Ref for the hidden file input
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -62,9 +73,9 @@ const Controls: React.FC<ControlsProps> = ({
         onUpdateHoliday(editingHoliday, { ...newHoliday });
         setEditingHoliday(null);
       } else {
-        onAddHoliday({ ...newHoliday });
+        onAddHoliday({ ...newHoliday, isManual: true });
       }
-      setNewHoliday({ startDate: '', endDate: '', term: '' });
+      setNewHoliday({ startDate: '', endDate: '', term: '', isManual: true });
     }
   };
 
@@ -74,7 +85,7 @@ const Controls: React.FC<ControlsProps> = ({
   };
 
   const cancelEdit = () => {
-    setNewHoliday({ startDate: '', endDate: '', term: '' });
+    setNewHoliday({ startDate: '', endDate: '', term: '', isManual: true });
     setEditingHoliday(null);
   };
 

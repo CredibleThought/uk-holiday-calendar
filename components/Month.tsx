@@ -7,9 +7,11 @@ interface MonthProps {
   monthIndex: number;
   publicHolidays: Holiday[];
   schoolHolidays: SchoolHoliday[];
+  onDateClick?: (date: string) => void;
+  selectionRange?: { start: string; end: string } | null;
 }
 
-const Month: React.FC<MonthProps> = ({ year, monthIndex, publicHolidays, schoolHolidays }) => {
+const Month: React.FC<MonthProps> = ({ year, monthIndex, publicHolidays, schoolHolidays, onDateClick, selectionRange }) => {
   const days = getDaysInMonth(year, monthIndex);
 
   // Create grid slots. We need to pad the start with empty slots if the month doesn't start on Sunday/Monday.
@@ -64,16 +66,29 @@ const Month: React.FC<MonthProps> = ({ year, monthIndex, publicHolidays, schoolH
             bgClass = 'bg-[#ffcc00] font-bold text-black dark:bg-[#b45309] dark:text-white'; // Public holiday: Gold/Amber
             tooltip = publicHoliday.title;
           } else if (schoolHoliday) {
-            bgClass = 'bg-[#89d6e8] text-black dark:bg-[#155e75] dark:text-white'; // School holiday: Cyan/Blue
-            tooltip = schoolHoliday.term;
+            bgClass = schoolHoliday.isManual
+              ? 'bg-purple-300 text-purple-900 border border-purple-400 dark:bg-purple-900 dark:text-purple-100 dark:border-purple-700' // User added: Purple
+              : 'bg-[#89d6e8] text-black dark:bg-[#155e75] dark:text-white'; // Default School holiday: Cyan/Blue
+            tooltip = schoolHoliday.term + (schoolHoliday.isManual ? ' (User Added)' : '');
           } else if (date.getDay() === 0 || date.getDay() === 6) {
             bgClass = 'bg-slate-50 text-slate-500 dark:bg-slate-700/30 dark:text-slate-500'; // Weekend light gray
+          }
+
+          // Visual Selection Override (Draft state)
+          let selectionClass = '';
+          if (selectionRange && selectionRange.start) {
+            if (dateStr === selectionRange.start || dateStr === selectionRange.end) {
+              selectionClass = 'ring-2 ring-blue-600 bg-blue-100 dark:bg-blue-900/50 dark:ring-blue-400 z-10'; // Start/End Points
+            } else if (selectionRange.end && isDateInRange(dateStr, selectionRange.start, selectionRange.end)) {
+              selectionClass = 'bg-blue-50 dark:bg-blue-900/30'; // Inside range
+            }
           }
 
           return (
             <div
               key={dateStr}
-              className={`h-8 print:h-6 flex items-center justify-center border-b border-r border-slate-100 print:border relative ${bgClass} ${tooltip ? 'cursor-help' : 'cursor-default'} dark:border-slate-700 dark:text-slate-300`}
+              onClick={() => onDateClick?.(dateStr)}
+              className={`h-8 print:h-6 flex items-center justify-center border-b border-r border-slate-100 print:border relative ${selectionClass || bgClass} ${tooltip ? 'cursor-help' : 'cursor-pointer hover:bg-slate-50 dark:hover:bg-slate-800'} dark:border-slate-700 dark:text-slate-300 transition-colors duration-150`}
               title={tooltip}
             >
               <span className="print:text-xs">{dayNum}</span>

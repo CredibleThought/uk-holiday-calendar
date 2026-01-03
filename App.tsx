@@ -12,6 +12,11 @@ const App: React.FC = () => {
   const [postcode, setPostcode] = useState<string>('');
   const [theme, setTheme] = useState<Theme>('light');
 
+  // Manual Entry State (Lifted from Controls)
+  const [showManual, setShowManual] = useState(false);
+  const [newHoliday, setNewHoliday] = useState<SchoolHoliday>({ startDate: '', endDate: '', term: '', isManual: true });
+  const [editingHoliday, setEditingHoliday] = useState<SchoolHoliday | null>(null);
+
   useEffect(() => {
     // Check system preference or local storage on mount could go here
     // For now defaulting to light as per state init, but let's check basic system pref
@@ -137,6 +142,30 @@ const App: React.FC = () => {
     e.target.value = '';
   };
 
+  const handleDateClick = (dateStr: string) => {
+    if (!showManual) return;
+
+    setNewHoliday(prev => {
+      // If we are editing a specific holiday or creating a new one
+      const currentStart = prev.startDate;
+      const currentEnd = prev.endDate;
+
+      if (!currentStart || (currentStart && currentEnd)) {
+        // Start new range (or reset if both were set)
+        return { ...prev, startDate: dateStr, endDate: '', isManual: true };
+      } else {
+        // Completing the range
+        if (dateStr < currentStart) {
+          // User clicked earlier date, swap
+          return { ...prev, startDate: dateStr, endDate: currentStart, isManual: true };
+        } else {
+          // Standard range
+          return { ...prev, endDate: dateStr, isManual: true };
+        }
+      }
+    });
+  };
+
   const getCountryDisplayName = (c: Country) => {
     switch (c) {
       case 'england-and-wales': return 'England & Wales';
@@ -190,6 +219,12 @@ const App: React.FC = () => {
           onSaveConfig={handleSaveConfig}
           onLoadConfig={handleLoadConfig}
           isSearching={searchingSchool}
+          showManual={showManual}
+          setShowManual={setShowManual}
+          newHoliday={newHoliday}
+          setNewHoliday={setNewHoliday}
+          editingHoliday={editingHoliday}
+          setEditingHoliday={setEditingHoliday}
         />
 
         <div className="shadow-2xl print:shadow-none">
@@ -199,6 +234,8 @@ const App: React.FC = () => {
             schoolHolidays={schoolHolidays}
             loading={loading}
             countryName={getCountryDisplayName(country)}
+            onDateClick={handleDateClick}
+            selectionRange={showManual ? { start: newHoliday.startDate, end: newHoliday.endDate } : null}
           />
         </div>
       </main>

@@ -9,16 +9,19 @@ interface CalendarProps {
   schoolHolidays: SchoolHoliday[];
   loading: boolean;
   countryName: string;
+  onDateClick?: (date: string) => void;
+  selectionRange?: { start: string; end: string } | null;
 }
 
-const Calendar: React.FC<CalendarProps> = ({ year, publicHolidays, schoolHolidays, loading, countryName }) => {
+const Calendar: React.FC<CalendarProps> = ({ year, publicHolidays, schoolHolidays, loading, countryName, onDateClick, selectionRange }) => {
   // Render 12 months
   const months = Array.from({ length: 12 }, (_, i) => i);
 
   // Calculate counts for the legend
-  const { publicHolidayCount, schoolHolidayCount } = useMemo(() => {
+  const { publicHolidayCount, schoolHolidayCount, manualHolidayCount } = useMemo(() => {
     let pCount = 0;
     let sCount = 0;
+    let mCount = 0;
 
     for (let m = 0; m < 12; m++) {
       const days = getDaysInMonth(year, m);
@@ -36,12 +39,16 @@ const Calendar: React.FC<CalendarProps> = ({ year, publicHolidays, schoolHoliday
           const isWeekend = date.getDay() === 0 || date.getDay() === 6;
 
           if (isSchool && !isWeekend) {
-            sCount++;
+            if (schoolHolidays.find(h => isDateInRange(dateStr, h.startDate, h.endDate))?.isManual) {
+              mCount++;
+            } else {
+              sCount++;
+            }
           }
         }
       }
     }
-    return { publicHolidayCount: pCount, schoolHolidayCount: sCount };
+    return { publicHolidayCount: pCount, schoolHolidayCount: sCount, manualHolidayCount: mCount };
   }, [year, publicHolidays, schoolHolidays]);
 
   if (loading) {
@@ -72,13 +79,15 @@ const Calendar: React.FC<CalendarProps> = ({ year, publicHolidays, schoolHoliday
             monthIndex={monthIndex}
             publicHolidays={publicHolidays}
             schoolHolidays={schoolHolidays}
+            onDateClick={onDateClick}
+            selectionRange={selectionRange}
           />
         ))}
       </div>
 
       {/* Footer / Legend */}
       <div className="mt-8 pt-4 border-t border-slate-200 print:mt-2 print:pt-2 print:border-t border-slate-300 dark:border-slate-700">
-        <div className="grid grid-cols-2 gap-2 mb-4 print:mb-2">
+        <div className="grid grid-cols-2 md:grid-cols-3 gap-2 mb-4 print:mb-2">
           {/* School Holidays Column */}
           <div className="flex flex-col gap-1.5">
             <div className="flex items-center border border-slate-300 bg-[#89d6e8] px-4 py-1.5 print:px-2 print:py-1 text-sm print:text-[10px] font-medium justify-center text-center dark:border-slate-600 dark:bg-[#155e75] dark:text-white">
@@ -87,6 +96,16 @@ const Calendar: React.FC<CalendarProps> = ({ year, publicHolidays, schoolHoliday
             <div className="text-xs text-slate-700 print:text-[9px] dark:text-slate-300">
               <span className="font-bold">School Holidays: </span>
               <span className="text-blue-600 underline dark:text-blue-400">https://www.gov.uk/school-term-holiday-dates</span>
+            </div>
+          </div>
+
+          {/* User Added Holidays Column */}
+          <div className="flex flex-col gap-1.5">
+            <div className="flex items-center border border-purple-400 bg-purple-300 px-4 py-1.5 print:px-2 print:py-1 text-sm print:text-[10px] font-medium justify-center text-center dark:border-purple-700 dark:bg-purple-900 dark:text-purple-100">
+              User Added ({manualHolidayCount} days)
+            </div>
+            <div className="text-xs text-slate-700 print:text-[9px] dark:text-slate-300 text-center">
+              <span className="font-bold">Manually Added Dates</span>
             </div>
           </div>
 
