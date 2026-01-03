@@ -25,13 +25,13 @@ const Calendar: React.FC<CalendarProps> = ({ year, publicHolidays, schoolHoliday
       for (const date of days) {
         const dateStr = formatDate(date);
         const isPublic = publicHolidays.some(h => h.date === dateStr);
-        
+
         if (isPublic) {
           pCount++;
         } else {
           // Only check school holiday if not public, because public takes precedence visually
           const isSchool = schoolHolidays.some(h => isDateInRange(dateStr, h.startDate, h.endDate));
-          
+
           // Exclude weekends (0=Sunday, 6=Saturday) from the count
           const isWeekend = date.getDay() === 0 || date.getDay() === 6;
 
@@ -46,20 +46,20 @@ const Calendar: React.FC<CalendarProps> = ({ year, publicHolidays, schoolHoliday
 
   if (loading) {
     return (
-      <div className="flex flex-col items-center justify-center min-h-[600px] bg-white rounded-lg shadow-sm border border-slate-200">
-        <div className="w-12 h-12 border-4 border-blue-200 border-t-blue-600 rounded-full animate-spin mb-4"></div>
-        <p className="text-slate-500">Generating Calendar...</p>
+      <div className="flex flex-col items-center justify-center min-h-[600px] bg-white rounded-lg shadow-sm border border-slate-200 dark:bg-slate-800 dark:border-slate-700">
+        <div className="w-12 h-12 border-4 border-blue-200 border-t-blue-600 rounded-full animate-spin mb-4 dark:border-blue-800 dark:border-t-blue-500"></div>
+        <p className="text-slate-500 dark:text-slate-400">Generating Calendar...</p>
       </div>
     );
   }
 
   return (
-    <div className="w-full bg-white print:bg-white p-4 print:p-0 mx-auto max-w-[1200px]">
+    <div className="w-full bg-white print:bg-white p-4 print:p-0 mx-auto max-w-[1200px] dark:bg-slate-900">
       {/* Title Header */}
       <div className="text-center mb-6 print:mb-2 print:mt-0">
-        <h1 className="text-5xl print:text-5xl font-serif font-bold text-slate-900 mb-2 print:mb-0.5">{year}</h1>
-        <p className="text-sm print:text-xs text-slate-500 print:text-slate-600 uppercase tracking-widest print:tracking-wide">
-           {countryName} • School Holidays Highlighted
+        <h1 className="text-5xl print:text-5xl font-serif font-bold text-slate-900 mb-2 print:mb-0.5 dark:text-white">{year}</h1>
+        <p className="text-sm print:text-xs text-slate-500 print:text-slate-600 uppercase tracking-widest print:tracking-wide dark:text-slate-400">
+          {countryName} • School Holidays Highlighted
         </p>
       </div>
 
@@ -77,27 +77,27 @@ const Calendar: React.FC<CalendarProps> = ({ year, publicHolidays, schoolHoliday
       </div>
 
       {/* Footer / Legend */}
-      <div className="mt-8 pt-4 border-t border-slate-200 print:mt-2 print:pt-2 print:border-t border-slate-300">
+      <div className="mt-8 pt-4 border-t border-slate-200 print:mt-2 print:pt-2 print:border-t border-slate-300 dark:border-slate-700">
         <div className="grid grid-cols-2 gap-2 mb-4 print:mb-2">
           {/* School Holidays Column */}
           <div className="flex flex-col gap-1.5">
-            <div className="flex items-center border border-slate-300 bg-[#89d6e8] px-4 py-1.5 print:px-2 print:py-1 text-sm print:text-[10px] font-medium justify-center text-center">
+            <div className="flex items-center border border-slate-300 bg-[#89d6e8] px-4 py-1.5 print:px-2 print:py-1 text-sm print:text-[10px] font-medium justify-center text-center dark:border-slate-600 dark:bg-[#155e75] dark:text-white">
               School Holiday ({schoolHolidayCount} days)
             </div>
-            <div className="text-xs text-slate-700 print:text-[9px]">
+            <div className="text-xs text-slate-700 print:text-[9px] dark:text-slate-300">
               <span className="font-bold">School Holidays: </span>
-              <span className="text-blue-600 underline">https://www.gov.uk/school-term-holiday-dates</span>
+              <span className="text-blue-600 underline dark:text-blue-400">https://www.gov.uk/school-term-holiday-dates</span>
             </div>
           </div>
 
           {/* Public Holidays Column */}
           <div className="flex flex-col gap-1.5">
-            <div className="flex items-center border border-slate-300 bg-[#ffcc00] px-4 py-1.5 print:px-2 print:py-1 text-sm print:text-[10px] font-medium justify-center text-center">
+            <div className="flex items-center border border-slate-300 bg-[#ffcc00] px-4 py-1.5 print:px-2 print:py-1 text-sm print:text-[10px] font-medium justify-center text-center dark:border-slate-600 dark:bg-[#b45309] dark:text-white">
               Public Holiday ({publicHolidayCount} days)
             </div>
-            <div className="text-xs text-slate-700 print:text-[9px]">
+            <div className="text-xs text-slate-700 print:text-[9px] dark:text-slate-300">
               <span className="font-bold">Public Holidays: </span>
-              <span className="text-blue-600 underline">https://www.gov.uk/bank-holidays</span>
+              <span className="text-blue-600 underline dark:text-blue-400">https://www.gov.uk/bank-holidays</span>
             </div>
           </div>
         </div>

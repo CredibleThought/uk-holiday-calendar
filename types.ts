@@ -1,4 +1,5 @@
 export type Country = 'england-and-wales' | 'scotland' | 'northern-ireland';
+export type Theme = 'light' | 'dark';
 
 export interface Holiday {
   date: string; // YYYY-MM-DD
