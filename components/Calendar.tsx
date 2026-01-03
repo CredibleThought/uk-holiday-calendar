@@ -40,8 +40,8 @@ const Calendar: React.FC<CalendarProps> = ({ year, publicHolidays, schoolHoliday
         }
 
         if (!isWeekend) {
-          // User Added Count: Count all user-added days excluding weekends, even if overlapping with public/standard
-          if (hasManual) {
+          // User Added Count: Count all user-added days excluding weekends AND public holidays
+          if (hasManual && !isPublic) {
             mCount++;
           }
 
@@ -110,7 +110,7 @@ const Calendar: React.FC<CalendarProps> = ({ year, publicHolidays, schoolHoliday
               User Added ({manualHolidayCount} days)
             </div>
             <div className="text-xs text-slate-700 print:text-[9px] dark:text-slate-300 text-center">
-              <span className="font-bold">Manually Added Dates</span>
+              <span className="font-bold">Manually Added Dates (Excl. Public Holidays)</span>
             </div>
           </div>
 
