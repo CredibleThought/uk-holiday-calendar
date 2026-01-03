@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import Controls from './components/Controls';
 import Calendar from './components/Calendar';
 import { fetchBankHolidays, fetchSchoolHolidays, getDefaultSchoolHolidays } from './services/holidayService';
@@ -39,6 +39,9 @@ const App: React.FC = () => {
   const [loading, setLoading] = useState<boolean>(true);
   const [searchingSchool, setSearchingSchool] = useState<boolean>(false);
 
+  // Ref to track if we are currently loading a config file
+  const loadingConfigRef = useRef(false);
+
   // Initial Data Load & Country Change
   const loadData = useCallback(async () => {
     setLoading(true);
@@ -48,9 +51,15 @@ const App: React.FC = () => {
     setPublicHolidays(bankHolidays);
 
     // 2. Set Default School Holidays for the selected Country
-    const defaultSchoolHolidays = getDefaultSchoolHolidays(country);
-    const sortedDefaults = [...defaultSchoolHolidays].sort((a, b) => a.startDate.localeCompare(b.startDate));
-    setSchoolHolidays(sortedDefaults);
+    // Only if NOT loading from a config file
+    if (!loadingConfigRef.current) {
+      const defaultSchoolHolidays = getDefaultSchoolHolidays(country);
+      const sortedDefaults = [...defaultSchoolHolidays].sort((a, b) => a.startDate.localeCompare(b.startDate));
+      setSchoolHolidays(sortedDefaults);
+    } else {
+      // Reset the flag efficiently
+      loadingConfigRef.current = false;
+    }
 
     setLoading(false);
   }, [country]);
@@ -127,6 +136,18 @@ const App: React.FC = () => {
         if (data.country) setCountry(data.country as Country);
         if (typeof data.postcode === 'string') setPostcode(data.postcode);
         if (Array.isArray(data.schoolHolidays)) {
+          // Flag that we are loading config so loadData doesn't overwrite school holidays
+          // if country state change triggers it.
+          // Note: If country in file is different from current state,
+          // setCountry will trigger useEffect -> loadData.
+          if (data.country && data.country !== country) {
+            loadingConfigRef.current = true;
+          } else {
+            // If country is same, loadData won't run, so we don't need the flag.
+            // But to be safe, clear it.
+            loadingConfigRef.current = false;
+          }
+
           // Ensure dates are sorted when loading
           const sorted = [...data.schoolHolidays].sort((a: SchoolHoliday, b: SchoolHoliday) => a.startDate.localeCompare(b.startDate));
           setSchoolHolidays(sorted);
