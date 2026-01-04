@@ -14,7 +14,7 @@ const App: React.FC = () => {
 
   // Manual Entry State (Lifted from Controls)
   const [showManual, setShowManual] = useState(false);
-  const [newHoliday, setNewHoliday] = useState<SchoolHoliday>({ startDate: '', endDate: '', term: '', isManual: true });
+  const [newHoliday, setNewHoliday] = useState<SchoolHoliday>({ startDate: '', endDate: '', term: '', isManual: true, type: 'user' });
   const [editingHoliday, setEditingHoliday] = useState<SchoolHoliday | null>(null);
 
   useEffect(() => {
@@ -173,15 +173,16 @@ const App: React.FC = () => {
 
       if (!currentStart || (currentStart && currentEnd)) {
         // Start new range (or reset if both were set)
-        return { ...prev, startDate: dateStr, endDate: '', isManual: true };
+        return { ...prev, startDate: dateStr, endDate: '', isManual: true, type: prev.type || 'user' };
       } else {
         // Completing the range
         if (dateStr < currentStart) {
           // User clicked earlier date, swap
-          return { ...prev, startDate: dateStr, endDate: currentStart, isManual: true };
+          return { ...prev, startDate: dateStr, endDate: currentStart, isManual: true, type: prev.type || 'user' };
         } else {
           // Standard range
-          return { ...prev, endDate: dateStr, isManual: true };
+          // Standard range
+          return { ...prev, endDate: dateStr, isManual: true, type: prev.type || 'user' };
         }
       }
     });

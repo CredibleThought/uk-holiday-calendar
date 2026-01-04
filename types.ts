@@ -13,6 +13,7 @@ export interface SchoolHoliday {
   endDate: string; // YYYY-MM-DD
   term: string;
   isManual?: boolean;
+  type?: 'school' | 'user';
 }
 
 export interface CalendarData {

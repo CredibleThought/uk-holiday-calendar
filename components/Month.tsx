@@ -58,36 +58,57 @@ const Month: React.FC<MonthProps> = ({ year, monthIndex, publicHolidays, schoolH
           // Find ALL matching school holidays to check for overlaps (Always check now, to allow public + user overlap)
           const matchingSchoolHolidays = schoolHolidays.filter(h => isDateInRange(dateStr, h.startDate, h.endDate));
 
-          const hasStandardSchoolHoliday = matchingSchoolHolidays.some(h => !h.isManual);
-          const hasManualHoliday = matchingSchoolHolidays.some(h => h.isManual);
+          // Determine types present
+          const hasSchoolType = matchingSchoolHolidays.some(h => (!h.type || h.type === 'school') && !h.isManual) || matchingSchoolHolidays.some(h => h.isManual && h.type === 'school');
+          // Actually, let's simplify.
+          // Standard holidays are always 'school' effectively.
+          // Manual holidays can be 'school' or 'user'.
+
+          const standardSchoolHolidays = matchingSchoolHolidays.filter(h => !h.isManual);
+          const manualSchoolHolidays = matchingSchoolHolidays.filter(h => h.isManual && h.type === 'school');
+          const userHolidays = matchingSchoolHolidays.filter(h => h.isManual && (!h.type || h.type === 'user')); // Default to user if undefined for manual?
+          // Wait, earlier I said default new holidays to 'user'.
+          // Existing manual holidays (from before this change) might not have a type.
+          // If isManual is true and type is undefined -> treat as 'user' (Purple) to preserve existing behavior?
+          // Yes, the implementation plan said: "Current Manual is Purple (User)".
+
+          const hasStandardSchool = standardSchoolHolidays.length > 0;
+          const hasManualSchool = manualSchoolHolidays.length > 0;
+          const hasUser = userHolidays.length > 0;
+
+          // Combined "School" presence (Standard or Manual-set-as-School)
+          const hasSchool = hasStandardSchool || hasManualSchool;
 
           let bgClass = '';
           let tooltip = '';
 
-          if (publicHoliday && hasManualHoliday) {
+          if (publicHoliday && hasUser) {
             // Overlap: Public + User (Gold / Purple)
             bgClass = 'bg-[linear-gradient(135deg,#ffcc00_50%,#d8b4fe_50%)] text-black dark:bg-[linear-gradient(135deg,#b45309_50%,#581c87_50%)] dark:text-white';
-            const manualTerm = matchingSchoolHolidays.find(h => h.isManual)?.term;
-            tooltip = `${publicHoliday.title} & ${manualTerm} (User Added)`;
+            const userTerm = userHolidays[0].term;
+            tooltip = `${publicHoliday.title} & ${userTerm} (User Added)`;
           } else if (publicHoliday) {
-            bgClass = 'bg-[#ffcc00] font-bold text-black dark:bg-[#b45309] dark:text-white'; // Public holiday: Gold/Amber
+            // Public holiday: Gold/Amber (Dominates School)
+            bgClass = 'bg-[#ffcc00] font-bold text-black dark:bg-[#b45309] dark:text-white';
             tooltip = publicHoliday.title;
-          } else if (hasStandardSchoolHoliday && hasManualHoliday) {
-            // Overlap: Standard + User (Blue / Purple)
+          } else if (hasSchool && hasUser) {
+            // Overlap: School (Standard/Manual) + User (Blue / Purple)
             bgClass = 'bg-[linear-gradient(135deg,#89d6e8_50%,#d8b4fe_50%)] text-black dark:bg-[linear-gradient(135deg,#155e75_50%,#581c87_50%)] dark:text-white';
-            const standardTerm = matchingSchoolHolidays.find(h => !h.isManual)?.term;
-            const manualTerm = matchingSchoolHolidays.find(h => h.isManual)?.term;
-            tooltip = `${standardTerm} & ${manualTerm} (User Added)`;
-          } else if (hasStandardSchoolHoliday) {
-            const h = matchingSchoolHolidays.find(h => !h.isManual)!;
-            bgClass = 'bg-[#89d6e8] text-black dark:bg-[#155e75] dark:text-white'; // Default School holiday: Cyan/Blue
-            tooltip = h.term;
-          } else if (hasManualHoliday) {
-            const h = matchingSchoolHolidays.find(h => h.isManual)!;
-            bgClass = 'bg-purple-300 text-purple-900 border border-purple-400 dark:bg-purple-900 dark:text-purple-100 dark:border-purple-700'; // User added: Purple
-            tooltip = h.term + ' (User Added)';
+            const schoolTerm = hasStandardSchool ? standardSchoolHolidays[0].term : manualSchoolHolidays[0].term;
+            const userTerm = userHolidays[0].term;
+            tooltip = `${schoolTerm} & ${userTerm} (User Added)`;
+          } else if (hasSchool) {
+            // School holiday: Cyan/Blue
+            // Could be standard or manual-school
+            bgClass = 'bg-[#89d6e8] text-black dark:bg-[#155e75] dark:text-white';
+            const term = hasStandardSchool ? standardSchoolHolidays[0].term : manualSchoolHolidays[0].term;
+            tooltip = term + (hasManualSchool && !hasStandardSchool ? ' (Manual School)' : '');
+          } else if (hasUser) {
+            // User added: Purple
+            bgClass = 'bg-purple-300 text-purple-900 border border-purple-400 dark:bg-purple-900 dark:text-purple-100 dark:border-purple-700';
+            tooltip = userHolidays[0].term + ' (User Added)';
           } else if (date.getDay() === 0 || date.getDay() === 6) {
-            bgClass = 'bg-slate-50 text-slate-500 dark:bg-slate-700/30 dark:text-slate-500'; // Weekend light gray
+            bgClass = 'bg-slate-50 text-slate-500 dark:bg-slate-700/30 dark:text-slate-500'; // Weekend
           }
 
           // Visual Selection Override (Draft state)

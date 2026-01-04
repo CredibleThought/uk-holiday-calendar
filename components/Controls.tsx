@@ -73,19 +73,23 @@ const Controls: React.FC<ControlsProps> = ({
         onUpdateHoliday(editingHoliday, { ...newHoliday });
         setEditingHoliday(null);
       } else {
-        onAddHoliday({ ...newHoliday, isManual: true });
+        onAddHoliday({ ...newHoliday, isManual: true, type: newHoliday.type || 'user' });
       }
-      setNewHoliday({ startDate: '', endDate: '', term: '', isManual: true });
+      setNewHoliday({ startDate: '', endDate: '', term: '', isManual: true, type: 'user' });
     }
   };
 
   const startEdit = (holiday: SchoolHoliday) => {
-    setNewHoliday({ ...holiday });
+    // If it's not manual, it's definitely a school holiday.
+    // If it is manual, use its existing type, or default to 'user' if missing.
+    const inferredType = holiday.isManual ? (holiday.type || 'user') : 'school';
+
+    setNewHoliday({ ...holiday, type: inferredType });
     setEditingHoliday(holiday);
   };
 
   const cancelEdit = () => {
-    setNewHoliday({ startDate: '', endDate: '', term: '', isManual: true });
+    setNewHoliday({ startDate: '', endDate: '', term: '', isManual: true, type: 'user' });
     setEditingHoliday(null);
   };
 
@@ -281,6 +285,33 @@ const Controls: React.FC<ControlsProps> = ({
                     onChange={e => setNewHoliday({ ...newHoliday, term: e.target.value })}
                     className="w-full p-2 text-sm border border-slate-300 rounded"
                   />
+                </div>
+                <div className="sm:col-span-2">
+                  <label className="block text-xs font-medium text-slate-500 mb-1">Type</label>
+                  <div className="flex gap-4 pt-1">
+                    <label className="flex items-center gap-2 cursor-pointer">
+                      <input
+                        type="radio"
+                        name="holidayType"
+                        value="user"
+                        checked={!newHoliday.type || newHoliday.type === 'user'}
+                        onChange={() => setNewHoliday({ ...newHoliday, type: 'user' })}
+                        className="text-blue-600 focus:ring-blue-500"
+                      />
+                      <span className="text-sm text-slate-700 dark:text-slate-300">Personal</span>
+                    </label>
+                    <label className="flex items-center gap-2 cursor-pointer">
+                      <input
+                        type="radio"
+                        name="holidayType"
+                        value="school"
+                        checked={newHoliday.type === 'school'}
+                        onChange={() => setNewHoliday({ ...newHoliday, type: 'school' })}
+                        className="text-blue-600 focus:ring-blue-500"
+                      />
+                      <span className="text-sm text-slate-700 dark:text-slate-300">School</span>
+                    </label>
+                  </div>
                 </div>
                 <div className="sm:col-span-1 flex gap-1">
                   <button
