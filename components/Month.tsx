@@ -60,11 +60,7 @@ const Month: React.FC<MonthProps> = ({ year, monthIndex, publicHolidays, schoolH
 
           // Calculate specific subsets
           const standardSchoolHolidays = matchingSchoolHolidays.filter(h => !h.isManual);
-<<<<<<< HEAD
           const manualSchoolHolidays = matchingSchoolHolidays.filter(h => h.isManual && (h.type === 'school' || h.type === 'other_school'));
-=======
-          const manualSchoolHolidays = matchingSchoolHolidays.filter(h => h.isManual && h.type === 'school');
->>>>>>> 2d1df320ab2f4c128e6588a0c2103192906bfa0f
           const userHolidays = matchingSchoolHolidays.filter(h => h.isManual && (!h.type || h.type === 'user'));
 
           // Determine types present

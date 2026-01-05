@@ -36,11 +36,7 @@ const Calendar: React.FC<CalendarProps> = ({ year, publicHolidays, schoolHoliday
 
         // Categorize
         const hasStandard = matchingSchoolHolidays.some(h => !h.isManual);
-<<<<<<< HEAD
         const hasManualSchool = matchingSchoolHolidays.some(h => h.isManual && (h.type === 'school' || h.type === 'other_school'));
-=======
-        const hasManualSchool = matchingSchoolHolidays.some(h => h.isManual && h.type === 'school');
->>>>>>> 2d1df320ab2f4c128e6588a0c2103192906bfa0f
 
         // Manual User (Default to user if type missing AND isManual is true, though Controls mostly sets it now)
         // Actually earlier code assumed isManual -> User. Now we have types.

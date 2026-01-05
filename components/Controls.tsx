@@ -550,11 +550,7 @@ const Controls: React.FC<ControlsProps> = ({
                         endDate,
                         term: summary,
                         isManual: !isStandardLike,
-<<<<<<< HEAD
                         type: !isStandardLike ? 'other_school' : 'school'
-=======
-                        type: 'school'
->>>>>>> 2d1df320ab2f4c128e6588a0c2103192906bfa0f
                       });
                       addedCount++;
                     });
