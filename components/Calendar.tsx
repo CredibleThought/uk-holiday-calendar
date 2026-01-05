@@ -18,10 +18,11 @@ const Calendar: React.FC<CalendarProps> = ({ year, publicHolidays, schoolHoliday
   const months = Array.from({ length: 12 }, (_, i) => i);
 
   // Calculate counts for the legend
-  const { publicHolidayCount, schoolHolidayCount, manualHolidayCount } = useMemo(() => {
+  const { publicHolidayCount, schoolHolidayCount, manualSchoolCount, standardSchoolCount, manualUserCount } = useMemo(() => {
     let pCount = 0;
     let sCount = 0;
-    let mCount = 0;
+    let msCount = 0; // Manual School
+    let muCount = 0; // Manual User
 
     for (let m = 0; m < 12; m++) {
       const days = getDaysInMonth(year, m);
@@ -32,28 +33,56 @@ const Calendar: React.FC<CalendarProps> = ({ year, publicHolidays, schoolHoliday
 
         // Find all school holidays for this date
         const matchingSchoolHolidays = schoolHolidays.filter(h => isDateInRange(dateStr, h.startDate, h.endDate));
+
+        // Categorize
         const hasStandard = matchingSchoolHolidays.some(h => !h.isManual);
-        const hasManual = matchingSchoolHolidays.some(h => h.isManual);
+        const hasManualSchool = matchingSchoolHolidays.some(h => h.isManual && (h.type === 'school' || h.type === 'other_school'));
+
+        // Manual User (Default to user if type missing AND isManual is true, though Controls mostly sets it now)
+        // Actually earlier code assumed isManual -> User. Now we have types.
+        // If type is explicitly 'user' OR (isManual is true and type is undefined/null)
+        const hasManualUser = matchingSchoolHolidays.some(h => h.isManual && (!h.type || h.type === 'user'));
 
         if (isPublic) {
           pCount++;
         }
 
         if (!isWeekend) {
-          // User Added Count: Count all user-added days excluding weekends AND public holidays
-          if (hasManual && !isPublic) {
-            mCount++;
-          }
+          // Public holiday dominates everything for counts usually, or we exclude it from others to avoid double counting "days off"
+          if (!isPublic) {
+            if (hasManualUser) {
+              muCount++;
+            }
 
-          // School Holiday Count: Count standard school holidays, excluding weekends and public holidays
-          // (standard school holidays are usually superseded by public holidays in counts)
-          if (hasStandard && !isPublic) {
-            sCount++;
+            // Count School Holidays. 
+            // If a day is BOTH Standard and Manual School? Count once.
+            // If a day is Manual School (but not Standard)? Count it.
+            // If a day is Standard? Count it.
+            if (hasStandard || hasManualSchool) {
+              // We distinguish them for the legend maybe, or lump them?
+              // User asked to "not add these to the user added days total".
+              // They didn't explicitly say add to school total, but it makes sense.
+              // Let's track Manual School separately for the Legend if we show it separately.
+
+              if (hasManualSchool && !hasStandard) {
+                msCount++;
+              } else if (hasStandard) {
+                sCount++;
+              }
+            }
           }
         }
       }
     }
-    return { publicHolidayCount: pCount, schoolHolidayCount: sCount, manualHolidayCount: mCount };
+    return {
+      publicHolidayCount: pCount,
+      schoolHolidayCount: sCount + msCount, // Combined for total? Or keep separate? Let's keep separate in variable but maybe show combined or separate in legend. 
+      // Actually, simplest is to show "School Holiday (Standard)" and "School Holiday (Manual)" or just "School Holiday" (Combined).
+      // "show manual school events a different colour" -> implies separate legend key.
+      manualSchoolCount: msCount,
+      standardSchoolCount: sCount,
+      manualUserCount: muCount
+    };
   }, [year, publicHolidays, schoolHolidays]);
 
   if (loading) {
@@ -92,36 +121,45 @@ const Calendar: React.FC<CalendarProps> = ({ year, publicHolidays, schoolHoliday
 
       {/* Footer / Legend */}
       <div className="mt-8 pt-4 border-t border-slate-200 print:mt-2 print:pt-2 print:border-t border-slate-300 dark:border-slate-700">
-        <div className="grid grid-cols-2 md:grid-cols-3 gap-2 mb-4 print:mb-2">
-          {/* School Holidays Column */}
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-2 mb-4 print:mb-2">
+
+          {/* Standard School Holidays */}
           <div className="flex flex-col gap-1.5">
             <div className="flex items-center border border-slate-300 bg-[#89d6e8] px-4 py-1.5 print:px-2 print:py-1 text-sm print:text-[10px] font-medium justify-center text-center dark:border-slate-600 dark:bg-[#89d6e8] dark:text-black">
-              School Holiday ({schoolHolidayCount} days)
+              School Holiday ({standardSchoolCount} days)
             </div>
-            <div className="text-xs text-slate-700 print:text-[9px] dark:text-slate-300">
-              <span className="font-bold">School Holidays: </span>
-              <span className="text-blue-600 underline dark:text-blue-400">https://www.gov.uk/school-term-holiday-dates</span>
+            <div className="hidden md:block text-xs text-slate-700 print:text-[9px] dark:text-slate-300 text-center">
+              Official Terms
             </div>
           </div>
 
-          {/* User Added Holidays Column */}
+          {/* Manual School Holidays (Imported) */}
+          <div className="flex flex-col gap-1.5">
+            <div className="flex items-center border border-emerald-300 bg-emerald-200 px-4 py-1.5 print:px-2 print:py-1 text-sm print:text-[10px] font-medium justify-center text-center dark:border-emerald-700 dark:bg-emerald-900 dark:text-emerald-100">
+              Other School ({manualSchoolCount} days)
+            </div>
+            <div className="hidden md:block text-xs text-slate-700 print:text-[9px] dark:text-slate-300 text-center">
+              Manually Added / Imported
+            </div>
+          </div>
+
+          {/* User Added Holidays (Personal) */}
           <div className="flex flex-col gap-1.5">
             <div className="flex items-center border border-purple-400 bg-purple-300 px-4 py-1.5 print:px-2 print:py-1 text-sm print:text-[10px] font-medium justify-center text-center dark:border-purple-400 dark:bg-purple-300 dark:text-purple-900">
-              User Added ({manualHolidayCount} days)
+              Personal ({manualUserCount} days)
             </div>
-            <div className="text-xs text-slate-700 print:text-[9px] dark:text-slate-300 text-center">
-              <span className="font-bold">Manually Added Dates (Excl. Public Holidays)</span>
+            <div className="hidden md:block text-xs text-slate-700 print:text-[9px] dark:text-slate-300 text-center">
+              User Events
             </div>
           </div>
 
-          {/* Public Holidays Column */}
+          {/* Public Holidays */}
           <div className="flex flex-col gap-1.5">
             <div className="flex items-center border border-slate-300 bg-[#ffcc00] px-4 py-1.5 print:px-2 print:py-1 text-sm print:text-[10px] font-medium justify-center text-center dark:border-slate-600 dark:bg-[#ffcc00] dark:text-black">
               Public Holiday ({publicHolidayCount} days)
             </div>
-            <div className="text-xs text-slate-700 print:text-[9px] dark:text-slate-300">
-              <span className="font-bold">Public Holidays: </span>
-              <span className="text-blue-600 underline dark:text-blue-400">https://www.gov.uk/bank-holidays</span>
+            <div className="hidden md:block text-xs text-slate-700 print:text-[9px] dark:text-slate-300 text-center">
+              Bank Holidays
             </div>
           </div>
         </div>

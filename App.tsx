@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback, useRef } from 'react';
+import React, { useState, useEffect, useCallback, useRef, useMemo } from 'react';
 import Controls from './components/Controls';
 import Calendar from './components/Calendar';
 import { fetchBankHolidays, fetchSchoolHolidays, getDefaultSchoolHolidays } from './services/holidayService';
@@ -38,6 +38,40 @@ const App: React.FC = () => {
 
   const [loading, setLoading] = useState<boolean>(true);
   const [searchingSchool, setSearchingSchool] = useState<boolean>(false);
+
+  // Filter State (Lifted from Controls)
+  const [searchText, setSearchText] = useState('');
+  const [filterText, setFilterText] = useState('');
+
+  // Filter holidays logic
+  const filteredHolidays = useMemo(() => {
+    return schoolHolidays.filter(h => {
+      const yearStart = `${year}-01-01`;
+      const yearEnd = `${year}-12-31`;
+      // Check if holiday overlaps with the year
+      const inYear = h.startDate <= yearEnd && h.endDate >= yearStart;
+      if (!inYear) return false;
+
+      // Filter text check
+      if (!filterText) return true;
+      const lowerFilter = filterText.toLowerCase();
+      // Split by " or " first to support boolean OR
+      const orGroups = lowerFilter.split(' or ').map(g => g.trim()).filter(g => g.length > 0);
+
+      // Check if ANY of the OR groups match
+      return orGroups.some(group => {
+        // Inside each OR group, split by " and " for boolean AND
+        const terms = group.split(' and ').map(t => t.trim()).filter(t => t.length > 0);
+
+        // Check if ALL terms in this specific group match
+        return terms.every(term =>
+          h.term.toLowerCase().includes(term) ||
+          h.startDate.includes(term) ||
+          h.endDate.includes(term)
+        );
+      });
+    });
+  }, [schoolHolidays, year, filterText]);
 
   // Ref to track if we are currently loading a config file
   const loadingConfigRef = useRef(false);
@@ -103,7 +137,7 @@ const App: React.FC = () => {
     setSchoolHolidays(prev => prev.filter(h => h !== holidayToRemove));
   };
 
-  const handleSaveConfig = () => {
+  const handleSaveConfig = async () => {
     const data = {
       year,
       country,
@@ -111,6 +145,34 @@ const App: React.FC = () => {
       schoolHolidays
     };
     const json = JSON.stringify(data, null, 2);
+
+    try {
+      // Check for File System Access API support
+      // @ts-ignore
+      if (typeof window.showSaveFilePicker === 'function') {
+        // @ts-ignore
+        const handle = await window.showSaveFilePicker({
+          suggestedName: `calendar-config-${year}.json`,
+          types: [{
+            description: 'JSON Configuration',
+            accept: { 'application/json': ['.json'] },
+          }],
+        });
+        const writable = await handle.createWritable();
+        await writable.write(json);
+        await writable.close();
+        return;
+      }
+    } catch (err: any) {
+      // If user cancelled, don't fallback to auto-download
+      if (err.name === 'AbortError') {
+        return;
+      }
+      console.error('File System Access API error:', err);
+      // Proceed to fallback if it was a technical error
+    }
+
+    // Fallback: Auto-download
     const blob = new Blob([json], { type: 'application/json' });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
@@ -247,13 +309,20 @@ const App: React.FC = () => {
           setNewHoliday={setNewHoliday}
           editingHoliday={editingHoliday}
           setEditingHoliday={setEditingHoliday}
+
+          // Filter Props
+          searchText={searchText}
+          setSearchText={setSearchText}
+          filterText={filterText}
+          setFilterText={setFilterText}
+          filteredHolidays={filteredHolidays}
         />
 
         <div className="shadow-2xl print:shadow-none">
           <Calendar
             year={year}
             publicHolidays={publicHolidays}
-            schoolHolidays={schoolHolidays}
+            schoolHolidays={filteredHolidays}
             loading={loading}
             countryName={getCountryDisplayName(country)}
             onDateClick={handleDateClick}
