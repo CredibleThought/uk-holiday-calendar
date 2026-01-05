@@ -8,6 +8,14 @@ export default defineConfig(({ mode }) => {
       server: {
         port: 3000,
         host: '0.0.0.0',
+        proxy: {
+          '/api/outlook': {
+            target: 'https://outlook.office365.com',
+            changeOrigin: true,
+            rewrite: (path) => path.replace(/^\/api\/outlook/, ''),
+            secure: false,
+          },
+        },
       },
       plugins: [react()],
       define: {

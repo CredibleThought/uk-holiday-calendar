@@ -1,4 +1,5 @@
-import React, { useState, useMemo, useRef } from 'react';
+import React, { useState, useRef } from 'react';
+import ICAL from 'ical.js';
 import { Country, SchoolHoliday, Theme } from '../types';
 import { Search, Printer, Edit2, Plus, Trash2, ExternalLink, ChevronDown, ChevronUp, Save, X, Download, Upload, Sun, Moon } from 'lucide-react';
 
@@ -26,6 +27,12 @@ interface ControlsProps {
   setNewHoliday: (h: SchoolHoliday) => void;
   editingHoliday: SchoolHoliday | null;
   setEditingHoliday: (h: SchoolHoliday | null) => void;
+  // Filter Props
+  searchText: string;
+  setSearchText: (text: string) => void;
+  filterText: string;
+  setFilterText: (text: string) => void;
+  filteredHolidays: SchoolHoliday[];
 }
 
 
@@ -52,11 +59,21 @@ const Controls: React.FC<ControlsProps> = ({
   setNewHoliday,
   editingHoliday,
   setEditingHoliday,
+  // Filter Props
+  searchText,
+  setSearchText,
+  filterText,
+  setFilterText,
+  filteredHolidays,
 }) => {
   // Local state removed, using props now
 
   // Ref for the hidden file input
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  // Import Status State
+  const [importStatus, setImportStatus] = useState<'idle' | 'loading' | 'success' | 'error'>('idle');
+  const [importMessage, setImportMessage] = useState<string>('');
 
   const handlePrint = () => {
     window.print();
@@ -93,15 +110,7 @@ const Controls: React.FC<ControlsProps> = ({
     setEditingHoliday(null);
   };
 
-  // Filter holidays to only show those relevant to the selected year
-  const filteredHolidays = useMemo(() => {
-    return schoolHolidays.filter(h => {
-      const yearStart = `${year}-01-01`;
-      const yearEnd = `${year}-12-31`;
-      // Check if holiday overlaps with the year
-      return h.startDate <= yearEnd && h.endDate >= yearStart;
-    });
-  }, [schoolHolidays, year]);
+  // Filter State and Logic Removed (Moved to App.tsx)
 
   return (
     <div className="bg-white p-6 rounded-lg shadow-sm border border-slate-200 mb-8 no-print dark:bg-slate-800 dark:border-slate-700">
@@ -286,9 +295,9 @@ const Controls: React.FC<ControlsProps> = ({
                     className="w-full p-2 text-sm border border-slate-300 rounded"
                   />
                 </div>
-                <div className="sm:col-span-2">
+                <div className="sm:col-span-4">
                   <label className="block text-xs font-medium text-slate-500 mb-1">Type</label>
-                  <div className="flex gap-4 pt-1">
+                  <div className="flex gap-4 pt-1 items-center">
                     <label className="flex items-center gap-2 cursor-pointer">
                       <input
                         type="radio"
@@ -310,6 +319,17 @@ const Controls: React.FC<ControlsProps> = ({
                         className="text-blue-600 focus:ring-blue-500"
                       />
                       <span className="text-sm text-slate-700 dark:text-slate-300">School</span>
+                    </label>
+                    <label className="flex items-center gap-2 cursor-pointer">
+                      <input
+                        type="radio"
+                        name="holidayType"
+                        value="other_school"
+                        checked={newHoliday.type === 'other_school'}
+                        onChange={() => setNewHoliday({ ...newHoliday, type: 'other_school' })}
+                        className="text-blue-600 focus:ring-blue-500"
+                      />
+                      <span className="text-sm text-slate-700 dark:text-slate-300">Other School</span>
                     </label>
                   </div>
                 </div>
@@ -334,10 +354,51 @@ const Controls: React.FC<ControlsProps> = ({
                 </div>
               </form>
 
+              {/* Filter Input */}
+              <div className="mb-2">
+                <div className="flex gap-2">
+                  <div className="relative flex-1">
+                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={16} />
+                    <input
+                      type="text"
+                      placeholder="Filter..."
+                      value={searchText}
+                      onChange={(e) => setSearchText(e.target.value)}
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter') {
+                          setFilterText(searchText);
+                        }
+                      }}
+                      className="w-full pl-9 pr-3 py-2 border border-slate-300 rounded-md text-sm outline-none focus:ring-2 focus:ring-blue-500 dark:bg-slate-700 dark:border-slate-600 dark:text-white"
+                    />
+                    {searchText && (
+                      <button
+                        onClick={() => {
+                          setSearchText('');
+                          setFilterText('');
+                        }}
+                        className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200"
+                      >
+                        <X size={14} />
+                      </button>
+                    )}
+                  </div>
+                  <button
+                    onClick={() => setFilterText(searchText)}
+                    className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-md text-sm font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                    disabled={searchText === filterText}
+                  >
+                    Apply
+                  </button>
+                </div>
+              </div>
+
               {/* List */}
               <div className="max-h-60 overflow-y-auto border border-slate-200 rounded-md dark:border-slate-700">
                 {filteredHolidays.length === 0 ? (
-                  <div className="p-4 text-center text-sm text-slate-400 italic">No school holidays found for {year}.</div>
+                  <div className="p-4 text-center text-sm text-slate-400 italic">
+                    {filterText ? "No matching holidays found." : `No school holidays found for ${year}.`}
+                  </div>
                 ) : (
                   <table className="w-full text-sm text-left">
                     <thead className="bg-slate-50 text-slate-500 font-medium border-b border-slate-200 dark:bg-slate-800 dark:text-slate-400 dark:border-slate-700">
@@ -385,14 +446,159 @@ const Controls: React.FC<ControlsProps> = ({
       )}
 
       {!showManual && (
-        <div className="mt-4 text-xs text-slate-500 bg-blue-50 p-3 rounded border border-blue-100 flex items-start gap-2 dark:bg-blue-900/20 dark:border-blue-800 dark:text-blue-200">
-          <div className="mt-0.5 text-blue-500 flex-shrink-0 dark:text-blue-400">
-            <ExternalLink size={14} />
+        <div className="mt-4 space-y-4">
+          {/* Import Section */}
+          <div className="bg-blue-50 p-4 rounded-md border border-blue-200 dark:bg-blue-900/20 dark:border-blue-800">
+            <h3 className="font-semibold text-blue-900 dark:text-blue-100 flex items-center gap-2 mb-3">
+              <Download size={18} />
+              Import Outlook Calendar
+            </h3>
+            <div className="flex flex-col sm:flex-row gap-3">
+              <input
+                type="text"
+                placeholder="Paste Outlook Shared Calendar Link (e.g. .../calendar.html)"
+                className="flex-1 p-2 text-sm border border-blue-300 rounded outline-none focus:ring-2 focus:ring-blue-500 dark:bg-slate-800 dark:border-slate-600 dark:text-white"
+                id="outlook-url-input"
+                disabled={importStatus === 'loading'}
+              />
+              <button
+                onClick={async () => {
+                  const input = document.getElementById('outlook-url-input') as HTMLInputElement;
+                  const url = input.value.trim();
+                  if (!url) return;
+
+                  setImportStatus('loading');
+                  setImportMessage('');
+
+                  try {
+                    // 1. Transform URL: https://outlook.office365.com/.../calendar.html -> /api/outlook/.../calendar.ics
+                    let fetchUrl = url;
+                    // Always try to use the proxy if it's an absolute URL to avoid CORS, 
+                    // unless it's already a relative path or we are sure about CORS.
+                    // For now, keep the specific Outlook check but maybe expand it later or improve error msg.
+                    if (url.includes('outlook.office365.com')) {
+                      const urlObj = new URL(url);
+                      fetchUrl = `/api/outlook${urlObj.pathname}`;
+                    }
+
+                    fetchUrl = fetchUrl.replace(/\.html$/, '.ics');
+
+                    const response = await fetch(fetchUrl);
+                    if (!response.ok) throw new Error(`Network response was not ok (${response.status})`);
+
+                    const icsData = await response.text();
+
+                    // Simple validation check
+                    if (!icsData.includes('BEGIN:VCALENDAR')) {
+                      throw new Error('Invalid calendar file format');
+                    }
+
+                    const jcalData = ICAL.parse(icsData);
+                    const comp = new ICAL.Component(jcalData);
+                    const vevents = comp.getAllSubcomponents('vevent');
+
+                    let addedCount = 0;
+                    vevents.forEach((vevent: any) => {
+                      const event = new ICAL.Event(vevent);
+                      const summary = event.summary;
+
+                      // Exclusion Logic
+                      if (summary.toLowerCase().includes('re-open') || summary.toLowerCase().includes('reopen') || summary.toLowerCase().includes('school opens')) {
+                        return;
+                      }
+
+                      // Helper to format ICAL.Time to YYYY-MM-DD (local time, ignoring timezone shifts)
+                      const formatIcalDate = (icalTime: any) => {
+                        const y = icalTime.year;
+                        const m = String(icalTime.month).padStart(2, '0');
+                        const d = String(icalTime.day).padStart(2, '0');
+                        return `${y}-${m}-${d}`;
+                      };
+
+                      const startDate = formatIcalDate(event.startDate);
+
+                      // Handle Exclusive End Date
+                      // ICS End Dates are exclusive.
+                      // For All Day events (isDate=true), we subtract 1 day to show the correct inclusive end date.
+                      // For Timed events (isDate=false), we keep as is (e.g. 10:00 to 11:00 is same day).
+                      const endDateObj = event.endDate.clone();
+                      if (event.endDate.isDate) {
+                        endDateObj.adjust(-1, 0, 0, 0);
+                      }
+                      const endDate = formatIcalDate(endDateObj);
+
+                      // Duplicate Check: Ignore if an existing holiday (Standard or Manual) has the same start/end date
+                      const isDuplicate = schoolHolidays.some(h => h.startDate === startDate && h.endDate === endDate);
+                      if (isDuplicate) {
+                        return; // Skip duplicate
+                      }
+
+                      // Smart Classification:
+                      const keywords = ['half term', 'break', 'holiday', 'easter', 'christmas', 'winter', 'spring', 'summer'];
+                      const isStandardLike = keywords.some(k => summary.toLowerCase().includes(k));
+
+                      onAddHoliday({
+                        startDate,
+                        endDate,
+                        term: summary,
+                        isManual: !isStandardLike,
+                        type: 'school'
+                      });
+                      addedCount++;
+                    });
+
+                    setImportStatus('success');
+                    setImportMessage(`Successfully imported ${addedCount} events!`);
+                    input.value = '';
+
+                    // Reset success message after 3 seconds
+                    setTimeout(() => {
+                      setImportStatus('idle');
+                      setImportMessage('');
+                    }, 5000);
+
+                  } catch (e: any) {
+                    console.error(e);
+                    setImportStatus('error');
+                    setImportMessage(e.message || 'Failed to import. Check URL & CORS.');
+                  }
+                }}
+                disabled={importStatus === 'loading'}
+                className={`px-4 py-2 rounded text-sm font-medium transition-colors flex items-center gap-2 ${importStatus === 'loading' ? 'bg-blue-400 cursor-not-allowed' : 'bg-blue-600 hover:bg-blue-700'} text-white`}
+              >
+                {importStatus === 'loading' ? (
+                  <>
+                    <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                    <span>Fetching...</span>
+                  </>
+                ) : (
+                  'Fetch'
+                )}
+              </button>
+            </div>
+            {importMessage && (
+              <div className={`mt-2 text-sm p-2 rounded ${importStatus === 'success' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}>
+                {importStatus === 'success' ? (
+                  <span className="flex items-center gap-1">✓ {importMessage}</span>
+                ) : (
+                  <span className="flex items-center gap-1">⚠ {importMessage}</span>
+                )}
+              </div>
+            )}
+            <p className="text-xs text-blue-800 dark:text-blue-300 mt-2">
+              <strong>Note:</strong> This uses a proxy to bypass CORS. Ensure you are running locally.
+            </p>
           </div>
-          <p>
-            <strong>Note:</strong> Public holidays are official (Gov.uk). School holidays are estimated based on postcode.
-            For exact dates, use the <strong>"Edit Dates"</strong> button to manually adjust them according to your local council website.
-          </p>
+
+          <div className="text-xs text-slate-500 bg-white p-3 rounded border border-slate-200 flex items-start gap-2 dark:bg-slate-800 dark:border-slate-700 dark:text-slate-400">
+            <div className="mt-0.5 text-blue-500 flex-shrink-0 dark:text-blue-400">
+              <ExternalLink size={14} />
+            </div>
+            <p>
+              <strong>Note:</strong> Public holidays are official (Gov.uk). School holidays are estimated based on postcode.
+              For exact dates, use the <strong>"Edit Dates"</strong> button to manually adjust them according to your local council website.
+            </p>
+          </div>
         </div>
       )}
     </div>

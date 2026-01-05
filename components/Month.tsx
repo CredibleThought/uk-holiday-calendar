@@ -58,55 +58,86 @@ const Month: React.FC<MonthProps> = ({ year, monthIndex, publicHolidays, schoolH
           // Find ALL matching school holidays to check for overlaps (Always check now, to allow public + user overlap)
           const matchingSchoolHolidays = schoolHolidays.filter(h => isDateInRange(dateStr, h.startDate, h.endDate));
 
-          // Determine types present
-          const hasSchoolType = matchingSchoolHolidays.some(h => (!h.type || h.type === 'school') && !h.isManual) || matchingSchoolHolidays.some(h => h.isManual && h.type === 'school');
-          // Actually, let's simplify.
-          // Standard holidays are always 'school' effectively.
-          // Manual holidays can be 'school' or 'user'.
-
+          // Calculate specific subsets
           const standardSchoolHolidays = matchingSchoolHolidays.filter(h => !h.isManual);
           const manualSchoolHolidays = matchingSchoolHolidays.filter(h => h.isManual && h.type === 'school');
-          const userHolidays = matchingSchoolHolidays.filter(h => h.isManual && (!h.type || h.type === 'user')); // Default to user if undefined for manual?
-          // Wait, earlier I said default new holidays to 'user'.
-          // Existing manual holidays (from before this change) might not have a type.
-          // If isManual is true and type is undefined -> treat as 'user' (Purple) to preserve existing behavior?
-          // Yes, the implementation plan said: "Current Manual is Purple (User)".
+          const userHolidays = matchingSchoolHolidays.filter(h => h.isManual && (!h.type || h.type === 'user'));
 
+          // Determine types present
           const hasStandardSchool = standardSchoolHolidays.length > 0;
           const hasManualSchool = manualSchoolHolidays.length > 0;
           const hasUser = userHolidays.length > 0;
 
-          // Combined "School" presence (Standard or Manual-set-as-School)
-          const hasSchool = hasStandardSchool || hasManualSchool;
+          // Combined "School" presence needs to split for visual priority if we want distinction
+          // Priority: Public > Manual School (Green) > Standard School (Cyan) > User (Purple)?
+          // Or: Public > User > Manual School > Standard School?
+          // If I import "School Term", I probably want it to look like a school term (Cyan) or distinct (Green).
+          // If I add "My Birthday", it's User (Purple).
+          // If they overlap?
+          // Public Overrides all visually usually (Gold).
+          // If Manual School (Green) overlaps with User (Purple) -> Gradient?
+
+          // Determine tooltip content (aggregate all events)
+          const allEvents: string[] = [];
+
+          if (publicHoliday) {
+            allEvents.push(`${publicHoliday.title} (Public Holiday)`);
+          }
+
+          // Add School/User holidays
+          // standardSchoolHolidays, manualSchoolHolidays, userHolidays are subsets of matchingSchoolHolidays
+          // We can just map matchingSchoolHolidays directly to get all names, but might want to distinguish types in text
+
+          matchingSchoolHolidays.forEach(h => {
+            let suffix = '';
+            if (h.isManual) {
+              if (!h.type || h.type === 'user') suffix = ' (Personal)';
+              else if (h.type === 'school') suffix = ' (School Event)';
+            } else {
+              suffix = ' (School Holiday)';
+            }
+            allEvents.push(`${h.term}${suffix}`);
+          });
+
+          // Deduplicate if needed (though unlikely to have exact duplicates unless data issue)
+          const uniqueEvents = Array.from(new Set(allEvents));
+          const tooltip = uniqueEvents.join('\n');
 
           let bgClass = '';
-          let tooltip = '';
 
-          if (publicHoliday && hasUser) {
-            // Overlap: Public + User (Gold / Purple)
-            bgClass = 'bg-[linear-gradient(135deg,#ffcc00_50%,#d8b4fe_50%)] text-black dark:bg-[linear-gradient(135deg,#b45309_50%,#581c87_50%)] dark:text-white';
-            const userTerm = userHolidays[0].term;
-            tooltip = `${publicHoliday.title} & ${userTerm} (User Added)`;
-          } else if (publicHoliday) {
-            // Public holiday: Gold/Amber (Dominates School)
-            bgClass = 'bg-[#ffcc00] font-bold text-black dark:bg-[#b45309] dark:text-white';
-            tooltip = publicHoliday.title;
-          } else if (hasSchool && hasUser) {
-            // Overlap: School (Standard/Manual) + User (Blue / Purple)
-            bgClass = 'bg-[linear-gradient(135deg,#89d6e8_50%,#d8b4fe_50%)] text-black dark:bg-[linear-gradient(135deg,#155e75_50%,#581c87_50%)] dark:text-white';
-            const schoolTerm = hasStandardSchool ? standardSchoolHolidays[0].term : manualSchoolHolidays[0].term;
-            const userTerm = userHolidays[0].term;
-            tooltip = `${schoolTerm} & ${userTerm} (User Added)`;
-          } else if (hasSchool) {
-            // School holiday: Cyan/Blue
-            // Could be standard or manual-school
-            bgClass = 'bg-[#89d6e8] text-black dark:bg-[#155e75] dark:text-white';
-            const term = hasStandardSchool ? standardSchoolHolidays[0].term : manualSchoolHolidays[0].term;
-            tooltip = term + (hasManualSchool && !hasStandardSchool ? ' (Manual School)' : '');
+          if (publicHoliday) {
+            // Public holiday: Gold/Amber
+            // If overlaps with others, maybe show gradient?
+            // Let's keep simple hierarchy for now, or simple mix.
+            if (hasUser) {
+              bgClass = 'bg-[linear-gradient(135deg,#ffcc00_50%,#d8b4fe_50%)] text-black dark:bg-[linear-gradient(135deg,#b45309_50%,#581c87_50%)] dark:text-white';
+            } else {
+              bgClass = 'bg-[#ffcc00] font-bold text-black dark:bg-[#b45309] dark:text-white';
+            }
+          } else if (hasManualSchool) {
+            // Manual School (Green)
+            if (hasUser) {
+              // Overlap with User (Purple)
+              bgClass = 'bg-[linear-gradient(135deg,#6ee7b7_50%,#d8b4fe_50%)] text-black dark:bg-[linear-gradient(135deg,#064e3b_50%,#581c87_50%)] dark:text-white';
+            } else if (hasStandardSchool) {
+              // Overlap with Standard School (Cyan) - Green/Cyan? Or just Green overrides?
+              // Manual usually overrides estimate.
+              bgClass = 'bg-emerald-200 text-emerald-900 border border-emerald-300 dark:bg-emerald-900 dark:text-emerald-100 dark:border-emerald-700';
+            } else {
+              // Just Manual School
+              bgClass = 'bg-emerald-200 text-emerald-900 border border-emerald-300 dark:bg-emerald-900 dark:text-emerald-100 dark:border-emerald-700';
+            }
+          } else if (hasStandardSchool) {
+            // Standard School (Cyan)
+            if (hasUser) {
+              // Overlap with User
+              bgClass = 'bg-[linear-gradient(135deg,#89d6e8_50%,#d8b4fe_50%)] text-black dark:bg-[linear-gradient(135deg,#155e75_50%,#581c87_50%)] dark:text-white';
+            } else {
+              bgClass = 'bg-[#89d6e8] text-black dark:bg-[#155e75] dark:text-white';
+            }
           } else if (hasUser) {
             // User added: Purple
             bgClass = 'bg-purple-300 text-purple-900 border border-purple-400 dark:bg-purple-900 dark:text-purple-100 dark:border-purple-700';
-            tooltip = userHolidays[0].term + ' (User Added)';
           } else if (date.getDay() === 0 || date.getDay() === 6) {
             bgClass = 'bg-slate-50 text-slate-500 dark:bg-slate-700/30 dark:text-slate-500'; // Weekend
           }
@@ -140,5 +171,6 @@ const Month: React.FC<MonthProps> = ({ year, monthIndex, publicHolidays, schoolH
     </div>
   );
 };
+
 
 export default Month;
