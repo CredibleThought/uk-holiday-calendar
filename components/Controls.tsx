@@ -1,7 +1,8 @@
 import React, { useState, useRef } from 'react';
 import ICAL from 'ical.js';
 import { Country, SchoolHoliday, Theme } from '../types';
-import { Search, Printer, Edit2, Plus, Trash2, ExternalLink, ChevronDown, ChevronUp, Save, X, Download, Upload, Sun, Moon } from 'lucide-react';
+import { Search, Printer, Edit2, Plus, Trash2, ExternalLink, ChevronDown, ChevronUp, Save, X, Download, Upload, Sun, Moon, CalendarPlus } from 'lucide-react';
+import { generateGoogleCalendarLink, generateOutlookLink, generateOffice365Link, generateIcsContent } from '../utils/calendarUtils';
 
 interface ControlsProps {
   year: number;
@@ -74,6 +75,11 @@ const Controls: React.FC<ControlsProps> = ({
   // Import Status State
   const [importStatus, setImportStatus] = useState<'idle' | 'loading' | 'success' | 'error'>('idle');
   const [importMessage, setImportMessage] = useState<string>('');
+
+  // Track which calendar menu is open (by holiday object reference or index)
+  // Using index for simplicity in the map loop, or unique ID if available. 
+  // Since holidays don't have IDs, we'll try to use a composite key or just track the currently open index in the filtered list.
+  const [openCalendarMenuIndex, setOpenCalendarMenuIndex] = useState<number | null>(null);
 
   const handlePrint = () => {
     window.print();
@@ -426,6 +432,70 @@ const Controls: React.FC<ControlsProps> = ({
                             <td className="p-2 text-slate-600">{h.startDate}</td>
                             <td className="p-2 text-slate-600">{h.endDate}</td>
                             <td className="p-2 text-right pr-4 flex justify-end gap-1">
+                              <div className="relative">
+                                <button
+                                  onClick={() => setOpenCalendarMenuIndex(openCalendarMenuIndex === idx ? null : idx)}
+                                  className="text-slate-500 hover:text-blue-600 p-1 hover:bg-blue-100 rounded"
+                                  title="Add to Calendar"
+                                >
+                                  <CalendarPlus size={16} />
+                                </button>
+
+                                {openCalendarMenuIndex === idx && (
+                                  <>
+                                    <div
+                                      className="fixed inset-0 z-10"
+                                      onClick={() => setOpenCalendarMenuIndex(null)}
+                                    />
+                                    <div className="absolute right-0 top-full mt-1 w-48 bg-white dark:bg-slate-800 rounded-md shadow-lg border border-slate-200 dark:border-slate-700 z-20 py-1">
+                                      <a
+                                        href={generateGoogleCalendarLink(h)}
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                        className="block px-4 py-2 text-sm text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700"
+                                        onClick={() => setOpenCalendarMenuIndex(null)}
+                                      >
+                                        Google Calendar
+                                      </a>
+                                      <a
+                                        href={generateOutlookLink(h)}
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                        className="block px-4 py-2 text-sm text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700"
+                                        onClick={() => setOpenCalendarMenuIndex(null)}
+                                      >
+                                        Outlook.com
+                                      </a>
+                                      <a
+                                        href={generateOffice365Link(h)}
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                        className="block px-4 py-2 text-sm text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700"
+                                        onClick={() => setOpenCalendarMenuIndex(null)}
+                                      >
+                                        Office 365
+                                      </a>
+                                      <button
+                                        onClick={() => {
+                                          const icsContent = generateIcsContent(h);
+                                          const blob = new Blob([icsContent], { type: 'text/calendar;charset=utf-8' });
+                                          const url = URL.createObjectURL(blob);
+                                          const a = document.createElement('a');
+                                          a.href = url;
+                                          a.download = `${h.term.replace(/[^a-z0-9]/gi, '_').toLowerCase()}.ics`;
+                                          document.body.appendChild(a);
+                                          a.click();
+                                          document.body.removeChild(a);
+                                          setOpenCalendarMenuIndex(null);
+                                        }}
+                                        className="block w-full text-left px-4 py-2 text-sm text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700"
+                                      >
+                                        Apple / Outlook (.ics)
+                                      </button>
+                                    </div>
+                                  </>
+                                )}
+                              </div>
                               <button
                                 onClick={() => startEdit(h)}
                                 className="text-blue-500 hover:text-blue-700 p-1 hover:bg-blue-100 rounded"
