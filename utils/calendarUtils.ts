@@ -1,15 +1,5 @@
 import { SchoolHoliday } from '../types';
-
-/**
- * Helper to adjust date string (YYYY-MM-DD) by N days.
- * Returns YYYY-MM-DD.
- */
-function addDays(dateStr: string, days: number): string {
-    if (!dateStr) return '';
-    const date = new Date(dateStr);
-    date.setDate(date.getDate() + days);
-    return date.toISOString().split('T')[0];
-}
+import { addDays, extendHolidayWithWeekends } from './dateUtils';
 
 /**
  * Removes hyphens from YYYY-MM-DD for ICS/URL format (YYYYMMDD).
@@ -19,7 +9,9 @@ function formatForUrl(dateStr: string): string {
 }
 
 export const generateGoogleCalendarLink = (holiday: SchoolHoliday): string => {
-    const { startDate, endDate, term } = holiday;
+    // Apply extension logic
+    const { startDate, endDate, term } = extendHolidayWithWeekends(holiday);
+
     // Google All Day events: End date is exclusive.
     // Our system data: End date is inclusive.
     // So we add 1 day to end date.
@@ -35,7 +27,8 @@ export const generateGoogleCalendarLink = (holiday: SchoolHoliday): string => {
 };
 
 export const generateOutlookLink = (holiday: SchoolHoliday): string => {
-    const { startDate, endDate, term } = holiday;
+    const { startDate, endDate, term } = extendHolidayWithWeekends(holiday);
+
     // Outlook / Office 365 Web also usually prefer exclusive end dates for all day events,
     // same as Google.
     const exclusiveEndDate = addDays(endDate, 1);
@@ -47,7 +40,8 @@ export const generateOutlookLink = (holiday: SchoolHoliday): string => {
 };
 
 export const generateOffice365Link = (holiday: SchoolHoliday): string => {
-    const { startDate, endDate, term } = holiday;
+    const { startDate, endDate, term } = extendHolidayWithWeekends(holiday);
+
     const exclusiveEndDate = addDays(endDate, 1);
 
     const title = encodeURIComponent(term);
@@ -57,7 +51,8 @@ export const generateOffice365Link = (holiday: SchoolHoliday): string => {
 };
 
 export const generateIcsContent = (holiday: SchoolHoliday): string => {
-    const { startDate, endDate, term } = holiday;
+    const { startDate, endDate, term } = extendHolidayWithWeekends(holiday);
+
     // ICS All Day: DTSTART;VALUE=DATE:YYYYMMDD
     // DTEND is exclusive.
     const exclusiveEndDate = addDays(endDate, 1);

@@ -1,4 +1,5 @@
 import { Country, Holiday, SchoolHoliday } from '../types';
+import { extendHolidayWithWeekends } from '../utils/dateUtils';
 
 const BANK_HOLIDAY_API = 'https://www.gov.uk/bank-holidays.json';
 
@@ -77,7 +78,7 @@ const HILLINGDON_SCHOOL_HOLIDAYS: SchoolHoliday[] = [
   { startDate: '2025-04-07', endDate: '2025-04-21', term: 'Easter Break' },
   { startDate: '2025-05-26', endDate: '2025-05-30', term: 'May Half Term' },
   { startDate: '2025-07-23', endDate: '2025-08-31', term: 'Summer Break' },
-  
+
   // 2025-2026 Academic Year
   { startDate: '2025-10-27', endDate: '2025-10-31', term: 'October Half Term' },
   { startDate: '2025-12-22', endDate: '2026-01-02', term: 'Christmas Break' },
@@ -85,7 +86,7 @@ const HILLINGDON_SCHOOL_HOLIDAYS: SchoolHoliday[] = [
   { startDate: '2026-03-30', endDate: '2026-04-10', term: 'Easter Break' },
   { startDate: '2026-05-25', endDate: '2026-05-29', term: 'May Half Term' },
   { startDate: '2026-07-22', endDate: '2026-09-01', term: 'Summer Break' },
-  
+
   // Start of 2026-2027
   { startDate: '2026-10-26', endDate: '2026-10-30', term: 'October Half Term' },
   { startDate: '2026-12-21', endDate: '2027-01-01', term: 'Christmas Break' }
@@ -169,24 +170,24 @@ export const fetchSchoolHolidays = async (postcode: string): Promise<SchoolHolid
   await new Promise((resolve) => setTimeout(resolve, 800));
 
   const cleanPostcode = postcode.replace(/\s/g, '').toUpperCase();
-  
+
   // Simple heuristic for Manchester postcodes (starts with M followed by a number, e.g., M13...)
   if (/^M\d/.test(cleanPostcode)) {
-    return MANCHESTER_SCHOOL_HOLIDAYS;
+    return MANCHESTER_SCHOOL_HOLIDAYS.map(extendHolidayWithWeekends);
   }
 
   // Default fallback (matches typical London/South East dates like HA4)
-  return HILLINGDON_SCHOOL_HOLIDAYS;
+  return HILLINGDON_SCHOOL_HOLIDAYS.map(extendHolidayWithWeekends);
 };
 
 export const getDefaultSchoolHolidays = (country: Country): SchoolHoliday[] => {
   switch (country) {
     case 'scotland':
-      return EDINBURGH_SCHOOL_HOLIDAYS;
+      return EDINBURGH_SCHOOL_HOLIDAYS.map(extendHolidayWithWeekends);
     case 'northern-ireland':
-      return NI_SCHOOL_HOLIDAYS;
+      return NI_SCHOOL_HOLIDAYS.map(extendHolidayWithWeekends);
     case 'england-and-wales':
     default:
-      return HILLINGDON_SCHOOL_HOLIDAYS;
+      return HILLINGDON_SCHOOL_HOLIDAYS.map(extendHolidayWithWeekends);
   }
 };
