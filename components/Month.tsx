@@ -114,26 +114,26 @@ const Month: React.FC<MonthProps> = ({ year, monthIndex, publicHolidays, schoolH
             } else {
               bgClass = 'bg-[#ffcc00] font-bold text-black dark:bg-[#b45309] dark:text-white';
             }
+          } else if (hasStandardSchool) {
+            // Standard School (Cyan) - Prioritize over Manual School
+            if (hasUser) {
+              // Overlap with User
+              bgClass = 'bg-[linear-gradient(135deg,#89d6e8_50%,#d8b4fe_50%)] text-black dark:bg-[linear-gradient(135deg,#155e75_50%,#581c87_50%)] dark:text-white';
+            } else if (hasManualSchool) {
+              // Standard overrides Manual School (Imported) visually as requested
+              // We could do a gradient if we wanted, but request says "take precedence"
+              bgClass = 'bg-[#89d6e8] text-black dark:bg-[#155e75] dark:text-white';
+            } else {
+              bgClass = 'bg-[#89d6e8] text-black dark:bg-[#155e75] dark:text-white';
+            }
           } else if (hasManualSchool) {
             // Manual School (Green)
             if (hasUser) {
               // Overlap with User (Purple)
               bgClass = 'bg-[linear-gradient(135deg,#6ee7b7_50%,#d8b4fe_50%)] text-black dark:bg-[linear-gradient(135deg,#064e3b_50%,#581c87_50%)] dark:text-white';
-            } else if (hasStandardSchool) {
-              // Overlap with Standard School (Cyan) - Green/Cyan? Or just Green overrides?
-              // Manual usually overrides estimate.
-              bgClass = 'bg-emerald-200 text-emerald-900 border border-emerald-300 dark:bg-emerald-900 dark:text-emerald-100 dark:border-emerald-700';
             } else {
               // Just Manual School
               bgClass = 'bg-emerald-200 text-emerald-900 border border-emerald-300 dark:bg-emerald-900 dark:text-emerald-100 dark:border-emerald-700';
-            }
-          } else if (hasStandardSchool) {
-            // Standard School (Cyan)
-            if (hasUser) {
-              // Overlap with User
-              bgClass = 'bg-[linear-gradient(135deg,#89d6e8_50%,#d8b4fe_50%)] text-black dark:bg-[linear-gradient(135deg,#155e75_50%,#581c87_50%)] dark:text-white';
-            } else {
-              bgClass = 'bg-[#89d6e8] text-black dark:bg-[#155e75] dark:text-white';
             }
           } else if (hasUser) {
             // User added: Purple
