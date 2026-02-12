@@ -125,7 +125,7 @@ const Calendar: React.FC<CalendarProps> = ({ year, publicHolidays, schoolHoliday
 
           {/* Standard School Holidays */}
           <div className="flex flex-col gap-1.5">
-            <div className="flex items-center border border-slate-300 bg-[#89d6e8] px-4 py-1.5 print:px-2 print:py-1 text-sm print:text-[10px] font-medium justify-center text-center dark:border-slate-600 dark:bg-[#89d6e8] dark:text-black">
+            <div className="flex items-center border border-slate-300 bg-[#89d6e8] px-4 py-1.5 print:px-2 print:py-1 text-sm print:text-[10px] font-medium justify-center text-center dark:border-slate-600 dark:bg-[#155e75] dark:text-white">
               School Holiday ({standardSchoolCount} days)
             </div>
             <div className="hidden md:block text-xs text-slate-700 print:text-[9px] dark:text-slate-300 text-center">
@@ -145,7 +145,7 @@ const Calendar: React.FC<CalendarProps> = ({ year, publicHolidays, schoolHoliday
 
           {/* User Added Holidays (Personal) */}
           <div className="flex flex-col gap-1.5">
-            <div className="flex items-center border border-purple-400 bg-purple-300 px-4 py-1.5 print:px-2 print:py-1 text-sm print:text-[10px] font-medium justify-center text-center dark:border-purple-400 dark:bg-purple-300 dark:text-purple-900">
+            <div className="flex items-center border border-purple-400 bg-purple-300 px-4 py-1.5 print:px-2 print:py-1 text-sm print:text-[10px] font-medium justify-center text-center dark:border-purple-400 dark:bg-purple-900 dark:text-purple-100">
               Personal ({manualUserCount} days)
             </div>
             <div className="hidden md:block text-xs text-slate-700 print:text-[9px] dark:text-slate-300 text-center">
@@ -155,7 +155,7 @@ const Calendar: React.FC<CalendarProps> = ({ year, publicHolidays, schoolHoliday
 
           {/* Public Holidays */}
           <div className="flex flex-col gap-1.5">
-            <div className="flex items-center border border-slate-300 bg-[#ffcc00] px-4 py-1.5 print:px-2 print:py-1 text-sm print:text-[10px] font-medium justify-center text-center dark:border-slate-600 dark:bg-[#ffcc00] dark:text-black">
+            <div className="flex items-center border border-slate-300 bg-[#ffcc00] px-4 py-1.5 print:px-2 print:py-1 text-sm print:text-[10px] font-medium justify-center text-center dark:border-slate-600 dark:bg-[#b45309] dark:text-white">
               Public Holiday ({publicHolidayCount} days)
             </div>
             <div className="hidden md:block text-xs text-slate-700 print:text-[9px] dark:text-slate-300 text-center">
