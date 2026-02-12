@@ -544,12 +544,12 @@ const Controls: React.FC<ControlsProps> = ({
           <div className="bg-blue-50 p-4 rounded-md border border-blue-200 dark:bg-blue-900/20 dark:border-blue-800">
             <h3 className="font-semibold text-blue-900 dark:text-blue-100 flex items-center gap-2 mb-3">
               <Download size={18} />
-              Import Outlook Calendar
+              Import Calendar (Outlook / Google / ICS)
             </h3>
             <div className="flex flex-col sm:flex-row gap-3">
               <input
                 type="text"
-                placeholder="Paste Outlook Shared Calendar Link (e.g. .../calendar.html)"
+                placeholder="Paste Outlook, Google, or WebCal URL"
                 className="flex-1 p-2 text-sm border border-blue-300 rounded outline-none focus:ring-2 focus:ring-blue-500 dark:bg-slate-800 dark:border-slate-600 dark:text-white"
                 id="outlook-url-input"
                 disabled={importStatus === 'loading'}
@@ -564,26 +564,32 @@ const Controls: React.FC<ControlsProps> = ({
                   setImportMessage('');
 
                   try {
-                    // 1. Transform URL: https://outlook.office365.com/.../calendar.html -> /api/outlook/.../calendar.ics
-                    let fetchUrl = url;
-                    // Always try to use the proxy if it's an absolute URL to avoid CORS, 
-                    // unless it's already a relative path or we are sure about CORS.
-                    // For now, keep the specific Outlook check but maybe expand it later or improve error msg.
-                    if (url.includes('outlook.office365.com')) {
-                      const urlObj = new URL(url);
-                      fetchUrl = `/api/outlook${urlObj.pathname}`;
+                    // 1. URL Normalization
+                    let targetUrl = url;
+
+                    // Handle webcal:// protocol
+                    if (targetUrl.startsWith('webcal://')) {
+                      targetUrl = 'https://' + targetUrl.slice(9);
                     }
 
-                    fetchUrl = fetchUrl.replace(/\.html$/, '.ics');
+                    // Handle Outlook HTML links -> converted to ICS automatically
+                    if (targetUrl.includes('outlook.office365.com') && targetUrl.endsWith('.html')) {
+                      targetUrl = targetUrl.replace(/\.html$/, '.ics');
+                    }
 
-                    const response = await fetch(fetchUrl);
+                    // 2. Fetch via Proxy (to bypass CORS)
+                    // We encode the target URL and send it to our generic proxy endpoint
+                    const proxyUrl = `/api/proxy?url=${encodeURIComponent(targetUrl)}`;
+
+                    const response = await fetch(proxyUrl);
                     if (!response.ok) throw new Error(`Network response was not ok (${response.status})`);
 
                     const icsData = await response.text();
 
                     // Simple validation check
                     if (!icsData.includes('BEGIN:VCALENDAR')) {
-                      throw new Error('Invalid calendar file format');
+                      console.error('Invalid ICS Data Received:', icsData.substring(0, 500));
+                      throw new Error('Invalid calendar file format or content. See console for details.');
                     }
 
                     const jcalData = ICAL.parse(icsData);
