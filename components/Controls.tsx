@@ -577,19 +577,25 @@ const Controls: React.FC<ControlsProps> = ({
                       targetUrl = targetUrl.replace(/\.html$/, '.ics');
                     }
 
-                    // 2. Fetch via Proxy (to bypass CORS)
-                    // We encode the target URL and send it to our generic proxy endpoint
-                    const proxyUrl = `/api/proxy?url=${encodeURIComponent(targetUrl)}`;
-
-                    const response = await fetch(proxyUrl);
-                    if (!response.ok) throw new Error(`Network response was not ok (${response.status})`);
-
-                    const icsData = await response.text();
+                    // 2. Fetch via Public Proxy (Try corsproxy.io first, then allorigins.win)
+                    let icsData = '';
+                    try {
+                      const proxyUrl = `https://corsproxy.io/?${encodeURIComponent(targetUrl)}`;
+                      const response = await fetch(proxyUrl);
+                      if (!response.ok) throw new Error(`corsproxy.io failed (${response.status})`);
+                      icsData = await response.text();
+                    } catch (e) {
+                      console.warn('corsproxy.io failed, trying allorigins.win...', e);
+                      const fallbackProxyUrl = `https://api.allorigins.win/raw?url=${encodeURIComponent(targetUrl)}`;
+                      const fallbackResponse = await fetch(fallbackProxyUrl);
+                      if (!fallbackResponse.ok) throw new Error(`allorigins.win also failed (${fallbackResponse.status})`);
+                      icsData = await fallbackResponse.text();
+                    }
 
                     // Simple validation check
                     if (!icsData.includes('BEGIN:VCALENDAR')) {
                       console.error('Invalid ICS Data Received:', icsData.substring(0, 500));
-                      throw new Error('Invalid calendar file format or content. See console for details.');
+                      throw new Error('Invalid calendar file format or content. The URL might be blocked or invalid.');
                     }
 
                     const jcalData = ICAL.parse(icsData);
@@ -685,7 +691,7 @@ const Controls: React.FC<ControlsProps> = ({
               </div>
             )}
             <p className="text-xs text-blue-800 dark:text-blue-300 mt-2">
-              <strong>Note:</strong> This uses a proxy to bypass CORS. Ensure you are running locally.
+              <strong>Note:</strong> This uses public proxies (corsproxy.io, allorigins.win) to bypass CORS restrictions.
             </p>
           </div>
 
