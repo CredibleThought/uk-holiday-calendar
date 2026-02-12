@@ -1,7 +1,7 @@
 import React, { useState, useRef } from 'react';
 import ICAL from 'ical.js';
 import { Country, SchoolHoliday, Theme } from '../types';
-import { Search, Printer, Edit2, Plus, Trash2, ExternalLink, ChevronDown, ChevronUp, Save, X, Download, Upload, Sun, Moon, CalendarPlus } from 'lucide-react';
+import { Search, Printer, Edit2, Plus, Trash2, ExternalLink, ChevronDown, ChevronUp, Save, X, Download, Upload, Sun, Moon, CalendarPlus, List } from 'lucide-react';
 import { generateGoogleCalendarLink, generateOutlookLink, generateOffice365Link, generateIcsContent } from '../utils/calendarUtils';
 
 interface ControlsProps {
@@ -33,7 +33,10 @@ interface ControlsProps {
   setSearchText: (text: string) => void;
   filterText: string;
   setFilterText: (text: string) => void;
+
   filteredHolidays: SchoolHoliday[];
+  showEventsList: boolean;
+  setShowEventsList: (show: boolean) => void;
 }
 
 
@@ -66,6 +69,8 @@ const Controls: React.FC<ControlsProps> = ({
   filterText,
   setFilterText,
   filteredHolidays,
+  showEventsList,
+  setShowEventsList,
 }) => {
   // Local state removed, using props now
 
@@ -230,8 +235,18 @@ const Controls: React.FC<ControlsProps> = ({
             title="Edit Dates Manually"
           >
             <Edit2 size={16} />
-            <span className="hidden sm:inline">Edit Dates</span>
+            <span className="hidden sm:inline">Edit / Filter Dates</span>
             {showManual ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
+          </button>
+
+          {/* Events List Toggle */}
+          <button
+            onClick={() => setShowEventsList(!showEventsList)}
+            className={`flex items-center gap-2 px-3 py-2 rounded-md transition-all border ${showEventsList ? 'bg-blue-50 border-blue-200 text-blue-700 dark:bg-blue-900/40 dark:border-blue-700 dark:text-blue-100' : 'bg-white border-slate-300 text-slate-700 hover:bg-slate-50 dark:bg-slate-600 dark:border-slate-500 dark:text-white dark:hover:bg-slate-500'}`}
+            title="Toggle Events List"
+          >
+            <List size={16} />
+            <span className="hidden sm:inline">Events List</span>
           </button>
 
           {/* Print */}

@@ -1,9 +1,11 @@
 import React, { useState, useEffect, useCallback, useRef, useMemo } from 'react';
 import Controls from './components/Controls';
 import Calendar from './components/Calendar';
+import EventsList from './components/EventsList';
 import { fetchBankHolidays, fetchSchoolHolidays, getDefaultSchoolHolidays } from './services/holidayService';
 import { Country, Holiday, SchoolHoliday, Theme } from './types';
 import { Coffee } from 'lucide-react';
+import { matchesFilter } from './utils/filterUtils';
 
 const App: React.FC = () => {
   const [year, setYear] = useState<number>(2026);
@@ -42,6 +44,7 @@ const App: React.FC = () => {
   // Filter State (Lifted from Controls)
   const [searchText, setSearchText] = useState('');
   const [filterText, setFilterText] = useState('');
+  const [showEventsList, setShowEventsList] = useState(false);
 
   // Filter holidays logic
   const filteredHolidays = useMemo(() => {
@@ -54,24 +57,31 @@ const App: React.FC = () => {
 
       // Filter text check
       if (!filterText) return true;
-      const lowerFilter = filterText.toLowerCase();
-      // Split by " or " first to support boolean OR
-      const orGroups = lowerFilter.split(' or ').map(g => g.trim()).filter(g => g.length > 0);
 
-      // Check if ANY of the OR groups match
-      return orGroups.some(group => {
-        // Inside each OR group, split by " and " for boolean AND
-        const terms = group.split(' and ').map(t => t.trim()).filter(t => t.length > 0);
+      const searchTerms = [
+        h.term,
+        h.startDate,
+        h.endDate
+      ].join(' '); // Combine fields to search against
 
-        // Check if ALL terms in this specific group match
-        return terms.every(term =>
-          h.term.toLowerCase().includes(term) ||
-          h.startDate.includes(term) ||
-          h.endDate.includes(term)
-        );
-      });
+      return matchesFilter(searchTerms, filterText);
     });
   }, [schoolHolidays, year, filterText]);
+
+  // Filter Public Holidays Logic
+  const filteredPublicHolidays = useMemo(() => {
+    return publicHolidays.filter(h => {
+      const yearStart = `${year}-01-01`;
+      const yearEnd = `${year}-12-31`;
+      // Check if public holiday falls in the year (though typically they are fetched per year/country, 
+      // but bank holiday endpoint usually returns multiple years so strict filtering is good).
+      // Actually gov.uk bank holidays endpoint usually returns fairly localized list but let's be safe.
+      if (!h.date.startsWith(String(year))) return false;
+
+      // Public holidays are ALWAYS shown, regardless of filter text
+      return true;
+    });
+  }, [publicHolidays, year, filterText]);
 
   // Ref to track if we are currently loading a config file
   const loadingConfigRef = useRef(false);
@@ -316,18 +326,28 @@ const App: React.FC = () => {
           filterText={filterText}
           setFilterText={setFilterText}
           filteredHolidays={filteredHolidays}
+          showEventsList={showEventsList}
+          setShowEventsList={setShowEventsList}
         />
 
         <div className="shadow-2xl print:shadow-none">
           <Calendar
             year={year}
-            publicHolidays={publicHolidays}
+            publicHolidays={filteredPublicHolidays}
             schoolHolidays={filteredHolidays}
             loading={loading}
             countryName={getCountryDisplayName(country)}
             onDateClick={handleDateClick}
             selectionRange={showManual ? { start: newHoliday.startDate, end: newHoliday.endDate } : null}
           />
+
+          {showEventsList && (
+            <EventsList
+              year={year}
+              publicHolidays={filteredPublicHolidays}
+              schoolHolidays={filteredHolidays}
+            />
+          )}
         </div>
       </main>
     </div>
