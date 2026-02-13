@@ -75,9 +75,9 @@ const EventsList: React.FC<EventsListProps> = ({ year, publicHolidays, schoolHol
       <h2 className="text-2xl font-bold mb-4 print:mb-2 text-slate-800 dark:text-white">Events List - {year}</h2>
       <div className="space-y-2">
         {allEvents.map((event, index) => (
-          <div key={index} className={`p-3 rounded-md border-l-4 ${getTypeStyle(event.type)} flex flex-col sm:flex-row sm:items-center justify-between shadow-sm print:shadow-none print:border`}>
-            <div className="font-medium text-lg print:text-sm">{event.title}</div>
-            <div className="text-sm font-mono opacity-90 print:text-xs whitespace-nowrap">
+          <div key={index} className={`p-2 rounded-md border-l-4 ${getTypeStyle(event.type)} flex flex-col sm:flex-row sm:items-center justify-between shadow-sm print:shadow-none print:border`}>
+            <div className="font-medium text-base print:text-sm">{event.title}</div>
+            <div className="text-sm font-mono opacity-90 print:text-xs whitespace-nowrap opacity-75">
               {formatEventDate(event.date)}
               {event.endDate && event.endDate !== event.date && (
                 <> - {formatEventDate(event.endDate)}</>

@@ -6,6 +6,7 @@ import { fetchBankHolidays, fetchSchoolHolidays, getDefaultSchoolHolidays } from
 import { Country, Holiday, SchoolHoliday, Theme } from './types';
 import { Coffee } from 'lucide-react';
 import { matchesFilter } from './utils/filterUtils';
+import { importCalendarFromUrl } from './utils/importUtils';
 
 const App: React.FC = () => {
   const [year, setYear] = useState<number>(2026);
@@ -108,9 +109,72 @@ const App: React.FC = () => {
     setLoading(false);
   }, [country]);
 
+
+
   useEffect(() => {
     loadData();
   }, [loadData]);
+
+
+  // Check for URL parameters (calendarUrl)
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const calendarUrl = params.get('calendarUrl');
+
+    if (calendarUrl) {
+      // Small delay to ensure initial data load doesn't conflict, though state updates are batched.
+      // But better to let the main loadData finish or at least start.
+      // Actually, since we want to appending to schoolHolidays, we need to be careful about strict mode double invocation.
+      const handleUrlImport = async () => {
+        setLoading(true); // Re-use loading state or maybe just let it run in background?
+        // Let's run in background but show a loading indicator if possible?
+        // For now, re-using loading might be jarring if it flickers.
+        // Let's just do it.
+
+        try {
+          // function importCalendarFromUrl(url: string, existingHolidays: SchoolHoliday[])
+          // We pass [] as existing because at this exact mounting point, schoolHolidays might still be empty from initial state,
+          // or populated by loadData which is also async.
+          // This is a bit tricky with React 18 strict mode and async race conditions.
+          // However, the import logic does its own duplicate checking against the list we pass it.
+          // If we pass [], it won't dedup against loaded defaults.
+          // But `importCalendarFromUrl` returns valid holidays.
+          // We can add them to state using the functional updater to access latest state.
+
+          const result = await importCalendarFromUrl(calendarUrl, []);
+          // We pass empty array for "existing" to the utility, but we will handle deduping when adding to state below.
+          // Actually, the utility uses the passed array to check for duplicates. 
+          // If we want to dedup against *eventually* loaded defaults, we might have an issue if this runs faster or slower.
+          // But generally, the user presumably wants these URL holidays *in addition* to defaults, or they might duplicate.
+          // Let's trust the utility for internal dedup (within the ICS) and then merging.
+
+          if (result.success && result.holidays.length > 0) {
+            setSchoolHolidays(prev => {
+              const combined = [...prev];
+              // Manual dedup here since we couldn't pass latest prev to the async helper easily without refs
+              result.holidays.forEach(newH => {
+                const isDuplicate = combined.some(h => h.startDate === newH.startDate && h.endDate === newH.endDate);
+                if (!isDuplicate) {
+                  combined.push(newH);
+                }
+              });
+              return combined.sort((a, b) => a.startDate.localeCompare(b.startDate));
+            });
+            // Optional: Alert success? Or just be silent?
+            // "automatically fetch" implies seamlessness.
+            console.log(`Auto-imported ${result.count} events from URL.`);
+          }
+        } catch (err) {
+          console.error("Failed to auto-import from URL param", err);
+        } finally {
+          setLoading(false);
+        }
+      };
+
+      handleUrlImport();
+    }
+  }, []); // Run once on mount
+
 
   const handleSearchSchoolHolidays = async () => {
     if (!postcode) return;

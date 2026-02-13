@@ -1,8 +1,8 @@
 import React, { useState, useRef } from 'react';
-import ICAL from 'ical.js';
 import { Country, SchoolHoliday, Theme } from '../types';
 import { Search, Printer, Edit2, Plus, Trash2, ExternalLink, ChevronDown, ChevronUp, Save, X, Download, Upload, Sun, Moon, CalendarPlus, List } from 'lucide-react';
 import { generateGoogleCalendarLink, generateOutlookLink, generateOffice365Link, generateIcsContent } from '../utils/calendarUtils';
+import { importCalendarFromUrl } from '../utils/importUtils';
 
 interface ControlsProps {
   year: number;
@@ -564,103 +564,24 @@ const Controls: React.FC<ControlsProps> = ({
                   setImportMessage('');
 
                   try {
-                    // 1. URL Normalization
-                    let targetUrl = url;
+                    // 1. URL Normalization & Fetch
+                    const result = await importCalendarFromUrl(url.trim(), schoolHolidays);
 
-                    // Handle webcal:// protocol
-                    if (targetUrl.startsWith('webcal://')) {
-                      targetUrl = 'https://' + targetUrl.slice(9);
+                    if (result.success) {
+                      result.holidays.forEach(h => onAddHoliday(h));
+
+                      setImportStatus('success');
+                      setImportMessage(result.message);
+                      input.value = '';
+
+                      // Reset success message after 3 seconds
+                      setTimeout(() => {
+                        setImportStatus('idle');
+                        setImportMessage('');
+                      }, 5000);
+                    } else {
+                      throw new Error(result.message);
                     }
-
-                    // Handle Outlook HTML links -> converted to ICS automatically
-                    if (targetUrl.includes('outlook.office365.com') && targetUrl.endsWith('.html')) {
-                      targetUrl = targetUrl.replace(/\.html$/, '.ics');
-                    }
-
-                    // 2. Fetch via Public Proxy (Try corsproxy.io first, then allorigins.win)
-                    let icsData = '';
-                    try {
-                      const proxyUrl = `https://corsproxy.io/?${encodeURIComponent(targetUrl)}`;
-                      const response = await fetch(proxyUrl);
-                      if (!response.ok) throw new Error(`corsproxy.io failed (${response.status})`);
-                      icsData = await response.text();
-                    } catch (e) {
-                      console.warn('corsproxy.io failed, trying allorigins.win...', e);
-                      const fallbackProxyUrl = `https://api.allorigins.win/raw?url=${encodeURIComponent(targetUrl)}`;
-                      const fallbackResponse = await fetch(fallbackProxyUrl);
-                      if (!fallbackResponse.ok) throw new Error(`allorigins.win also failed (${fallbackResponse.status})`);
-                      icsData = await fallbackResponse.text();
-                    }
-
-                    // Simple validation check
-                    if (!icsData.includes('BEGIN:VCALENDAR')) {
-                      console.error('Invalid ICS Data Received:', icsData.substring(0, 500));
-                      throw new Error('Invalid calendar file format or content. The URL might be blocked or invalid.');
-                    }
-
-                    const jcalData = ICAL.parse(icsData);
-                    const comp = new ICAL.Component(jcalData);
-                    const vevents = comp.getAllSubcomponents('vevent');
-
-                    let addedCount = 0;
-                    vevents.forEach((vevent: any) => {
-                      const event = new ICAL.Event(vevent);
-                      const summary = event.summary;
-
-                      // Exclusion Logic
-                      if (summary.toLowerCase().includes('re-open') || summary.toLowerCase().includes('reopen') || summary.toLowerCase().includes('school opens')) {
-                        return;
-                      }
-
-                      // Helper to format ICAL.Time to YYYY-MM-DD (local time, ignoring timezone shifts)
-                      const formatIcalDate = (icalTime: any) => {
-                        const y = icalTime.year;
-                        const m = String(icalTime.month).padStart(2, '0');
-                        const d = String(icalTime.day).padStart(2, '0');
-                        return `${y}-${m}-${d}`;
-                      };
-
-                      const startDate = formatIcalDate(event.startDate);
-
-                      // Handle Exclusive End Date
-                      // ICS End Dates are exclusive.
-                      // For All Day events (isDate=true), we subtract 1 day to show the correct inclusive end date.
-                      // For Timed events (isDate=false), we keep as is (e.g. 10:00 to 11:00 is same day).
-                      const endDateObj = event.endDate.clone();
-                      if (event.endDate.isDate) {
-                        endDateObj.adjust(-1, 0, 0, 0);
-                      }
-                      const endDate = formatIcalDate(endDateObj);
-
-                      // Duplicate Check: Ignore if an existing holiday (Standard or Manual) has the same start/end date
-                      const isDuplicate = schoolHolidays.some(h => h.startDate === startDate && h.endDate === endDate);
-                      if (isDuplicate) {
-                        return; // Skip duplicate
-                      }
-
-                      // Smart Classification:
-                      const keywords = ['half term', 'break', 'holiday', 'easter', 'christmas', 'winter', 'spring', 'summer'];
-                      const isStandardLike = keywords.some(k => summary.toLowerCase().includes(k));
-
-                      onAddHoliday({
-                        startDate,
-                        endDate,
-                        term: summary,
-                        isManual: !isStandardLike,
-                        type: !isStandardLike ? 'other_school' : 'school'
-                      });
-                      addedCount++;
-                    });
-
-                    setImportStatus('success');
-                    setImportMessage(`Successfully imported ${addedCount} events!`);
-                    input.value = '';
-
-                    // Reset success message after 3 seconds
-                    setTimeout(() => {
-                      setImportStatus('idle');
-                      setImportMessage('');
-                    }, 5000);
 
                   } catch (e: any) {
                     console.error(e);
