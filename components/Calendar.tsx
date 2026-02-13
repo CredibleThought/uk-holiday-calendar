@@ -59,15 +59,11 @@ const Calendar: React.FC<CalendarProps> = ({ year, publicHolidays, schoolHoliday
             // If a day is Manual School (but not Standard)? Count it.
             // If a day is Standard? Count it.
             if (hasStandard || hasManualSchool) {
-              // We distinguish them for the legend maybe, or lump them?
-              // User asked to "not add these to the user added days total".
-              // They didn't explicitly say add to school total, but it makes sense.
-              // Let's track Manual School separately for the Legend if we show it separately.
-
-              if (hasManualSchool && !hasStandard) {
-                msCount++;
-              } else if (hasStandard) {
+              if (hasStandard) {
                 sCount++;
+              }
+              if (hasManualSchool) {
+                msCount++;
               }
             }
           }

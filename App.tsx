@@ -149,11 +149,18 @@ const App: React.FC = () => {
           // Let's trust the utility for internal dedup (within the ICS) and then merging.
 
           if (result.success && result.holidays.length > 0) {
+            console.log('Sample imported:', result.holidays.slice(0, 3));
             setSchoolHolidays(prev => {
               const combined = [...prev];
-              // Manual dedup here since we couldn't pass latest prev to the async helper easily without refs
+
               result.holidays.forEach(newH => {
-                const isDuplicate = combined.some(h => h.startDate === newH.startDate && h.endDate === newH.endDate);
+                // Dedup by date AND term (title) to allow multiple events on same day
+                const isDuplicate = combined.some(h =>
+                  h.startDate === newH.startDate &&
+                  h.endDate === newH.endDate &&
+                  h.term === newH.term
+                );
+
                 if (!isDuplicate) {
                   combined.push(newH);
                 }
@@ -200,6 +207,22 @@ const App: React.FC = () => {
     setSchoolHolidays(prev => {
       const updated = [...prev, holiday];
       return updated.sort((a, b) => a.startDate.localeCompare(b.startDate));
+    });
+  };
+
+  const handleAddHolidays = (holidays: SchoolHoliday[]) => {
+    setSchoolHolidays(prev => {
+      const combined = [...prev];
+      holidays.forEach(newH => {
+        // Simple duplicate check (exact match)
+        const exists = combined.some(h =>
+          h.startDate === newH.startDate &&
+          h.endDate === newH.endDate &&
+          h.term === newH.term
+        );
+        if (!exists) combined.push(newH);
+      });
+      return combined.sort((a, b) => a.startDate.localeCompare(b.startDate));
     });
   };
 

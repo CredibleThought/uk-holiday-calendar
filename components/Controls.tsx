@@ -14,6 +14,7 @@ interface ControlsProps {
   onPostcodeChange: (p: string) => void;
   onSearchSchoolHolidays: () => void;
   onAddHoliday: (h: SchoolHoliday) => void;
+  onAddHolidays?: (h: SchoolHoliday[]) => void;
   onUpdateHoliday: (oldH: SchoolHoliday, newH: SchoolHoliday) => void;
   onRemoveHoliday: (h: SchoolHoliday) => void;
   onSaveConfig: () => void;
@@ -50,6 +51,7 @@ const Controls: React.FC<ControlsProps> = ({
   onPostcodeChange,
   onSearchSchoolHolidays,
   onAddHoliday,
+  onAddHolidays,
   onUpdateHoliday,
   onRemoveHoliday,
   onSaveConfig,
@@ -568,7 +570,12 @@ const Controls: React.FC<ControlsProps> = ({
                     const result = await importCalendarFromUrl(url.trim(), schoolHolidays);
 
                     if (result.success) {
-                      result.holidays.forEach(h => onAddHoliday(h));
+                      if (onAddHolidays) {
+                        onAddHolidays(result.holidays);
+                      } else {
+                        // Fallback should not happen if App updated correctly
+                        result.holidays.forEach(h => onAddHoliday(h));
+                      }
 
                       setImportStatus('success');
                       setImportMessage(result.message);

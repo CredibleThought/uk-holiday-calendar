@@ -67,6 +67,11 @@ export const importCalendarFromUrl = async (
         const newHolidays: SchoolHoliday[] = [];
         let addedCount = 0;
 
+        // Determine range for recurrence expansion (Current Year - 1 to +4)
+        const currentYear = new Date().getFullYear();
+        const expandStartYear = currentYear - 1;
+        const expandEndYear = currentYear + 4;
+
         vevents.forEach((vevent: any) => {
             const event = new ICAL.Event(vevent);
             const summary = event.summary;
@@ -76,47 +81,72 @@ export const importCalendarFromUrl = async (
                 return;
             }
 
-            // Helper to format ICAL.Time to YYYY-MM-DD (local time, ignoring timezone shifts)
-            const formatIcalDate = (icalTime: any) => {
-                const y = icalTime.year;
-                const m = String(icalTime.month).padStart(2, '0');
-                const d = String(icalTime.day).padStart(2, '0');
-                return `${y}-${m}-${d}`;
+            const processEventInstance = (startDateIcal: any, endDateIcal: any) => {
+                // Helper to format ICAL.Time to YYYY-MM-DD
+                const formatIcalDate = (icalTime: any) => {
+                    const y = icalTime.year;
+                    const m = String(icalTime.month).padStart(2, '0');
+                    const d = String(icalTime.day).padStart(2, '0');
+                    return `${y}-${m}-${d}`;
+                };
+
+                const startDate = formatIcalDate(startDateIcal);
+
+                // Handle Exclusive End Date
+                const endDateObj = endDateIcal.clone();
+                if (endDateIcal.isDate) {
+                    endDateObj.adjust(-1, 0, 0, 0);
+                }
+                let endDate = formatIcalDate(endDateObj);
+
+                // Check for invalid end dates (e.g. zero duration events where we subtracted 1 day)
+                if (endDate < startDate) {
+                    endDate = startDate;
+                }
+
+                // Duplicate Check
+                const isDuplicate = existingHolidays.some(h => h.startDate === startDate && h.endDate === endDate && h.term === summary) ||
+                    newHolidays.some(h => h.startDate === startDate && h.endDate === endDate && h.term === summary);
+
+                if (isDuplicate) return;
+
+                // Smart Classification
+                const keywords = ['half term', 'break', 'holiday', 'easter', 'christmas', 'winter', 'spring', 'summer'];
+                const isStandardLike = keywords.some(k => summary.toLowerCase().includes(k));
+
+                newHolidays.push({
+                    startDate,
+                    endDate,
+                    term: summary,
+                    isManual: !isStandardLike,
+                    type: !isStandardLike ? 'event' : 'school'
+                });
+                addedCount++;
             };
 
-            const startDate = formatIcalDate(event.startDate);
+            if (event.isRecurring()) {
+                const iterator = event.iterator();
+                let next;
+                let loopCount = 0; // Safety break
 
-            // Handle Exclusive End Date
-            // ICS End Dates are exclusive.
-            // For All Day events (isDate=true), we subtract 1 day to show the correct inclusive end date.
-            // For Timed events (isDate=false), we keep as is (e.g. 10:00 to 11:00 is same day).
-            const endDateObj = event.endDate.clone();
-            if (event.endDate.isDate) {
-                endDateObj.adjust(-1, 0, 0, 0);
+                while ((next = iterator.next()) && loopCount < 1000) {
+                    loopCount++;
+                    const year = next.year;
+
+                    if (year < expandStartYear) continue;
+                    if (year > expandEndYear) break;
+
+                    // Calculate Duration to find End Date for this occurrence
+                    const duration = event.duration;
+                    const end = next.clone();
+                    end.addDuration(duration);
+
+                    processEventInstance(next, end);
+                }
+            } else {
+                // Single Event
+                processEventInstance(event.startDate, event.endDate);
             }
-            const endDate = formatIcalDate(endDateObj);
-
-            // Duplicate Check: Ignore if an existing holiday (Standard or Manual) has the same start/end date
-            // Also check against new holidays we are about to add
-            const isDuplicate = existingHolidays.some(h => h.startDate === startDate && h.endDate === endDate) ||
-                newHolidays.some(h => h.startDate === startDate && h.endDate === endDate);
-
-            if (isDuplicate) {
-                return; // Skip duplicate
-            }
-
-            // Smart Classification:
-            const keywords = ['half term', 'break', 'holiday', 'easter', 'christmas', 'winter', 'spring', 'summer'];
-            const isStandardLike = keywords.some(k => summary.toLowerCase().includes(k));
-
-            newHolidays.push({
-                startDate,
-                endDate,
-                term: summary,
-                isManual: !isStandardLike,
-                type: !isStandardLike ? 'event' : 'school'
-            });
-            addedCount++;
         });
 
         return {

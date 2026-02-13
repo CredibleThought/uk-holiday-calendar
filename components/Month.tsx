@@ -58,6 +58,8 @@ const Month: React.FC<MonthProps> = ({ year, monthIndex, publicHolidays, schoolH
           // Find ALL matching school holidays to check for overlaps (Always check now, to allow public + user overlap)
           const matchingSchoolHolidays = schoolHolidays.filter(h => isDateInRange(dateStr, h.startDate, h.endDate));
 
+
+
           // Calculate specific subsets
           const standardSchoolHolidays = matchingSchoolHolidays.filter(h => !h.isManual);
           const manualSchoolHolidays = matchingSchoolHolidays.filter(h => h.isManual && (h.type === 'school' || h.type === 'event' || h.type === 'other_school'));
@@ -120,9 +122,8 @@ const Month: React.FC<MonthProps> = ({ year, monthIndex, publicHolidays, schoolH
               // Overlap with User
               bgClass = 'bg-[linear-gradient(135deg,#89d6e8_50%,#d8b4fe_50%)] text-black dark:bg-[linear-gradient(135deg,#155e75_50%,#581c87_50%)] dark:text-white';
             } else if (hasManualSchool) {
-              // Standard overrides Manual School (Imported) visually as requested
-              // We could do a gradient if we wanted, but request says "take precedence"
-              bgClass = 'bg-[#89d6e8] text-black dark:bg-[#155e75] dark:text-white';
+              // Standard + Manual Overlap -> Split Gradient (Blue/Green)
+              bgClass = 'bg-[linear-gradient(135deg,#89d6e8_50%,#a7f3d0_50%)] text-black dark:bg-[linear-gradient(135deg,#155e75_50%,#064e3b_50%)] dark:text-white';
             } else {
               bgClass = 'bg-[#89d6e8] text-black dark:bg-[#155e75] dark:text-white';
             }
