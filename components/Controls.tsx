@@ -114,7 +114,7 @@ const Controls: React.FC<ControlsProps> = ({
 
     if (holiday.isManual) {
       if (!holiday.type || holiday.type === 'school') {
-        inferredType = 'other_school';
+        inferredType = 'event';
       }
     } else {
       inferredType = 'school';
@@ -353,12 +353,12 @@ const Controls: React.FC<ControlsProps> = ({
                       <input
                         type="radio"
                         name="holidayType"
-                        value="other_school"
-                        checked={newHoliday.type === 'other_school'}
-                        onChange={() => setNewHoliday({ ...newHoliday, type: 'other_school' })}
+                        value="event"
+                        checked={newHoliday.type === 'event'}
+                        onChange={() => setNewHoliday({ ...newHoliday, type: 'event' })}
                         className="text-blue-600 focus:ring-blue-500"
                       />
-                      <span className="text-sm text-slate-700 dark:text-slate-300">Other School</span>
+                      <span className="text-sm text-slate-700 dark:text-slate-300">Event</span>
                     </label>
                   </div>
                 </div>

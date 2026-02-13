@@ -114,7 +114,7 @@ export const importCalendarFromUrl = async (
                 endDate,
                 term: summary,
                 isManual: !isStandardLike,
-                type: !isStandardLike ? 'other_school' : 'school'
+                type: !isStandardLike ? 'event' : 'school'
             });
             addedCount++;
         });

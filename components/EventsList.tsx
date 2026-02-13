@@ -33,7 +33,7 @@ const EventsList: React.FC<EventsListProps> = ({ year, publicHolidays, schoolHol
         let type: 'school-standard' | 'school-manual' | 'user' = 'school-standard';
 
         if (h.isManual) {
-          if (h.type === 'school' || h.type === 'other_school') {
+          if (h.type === 'school' || h.type === 'event' || h.type === 'other_school') {
             type = 'school-manual';
           } else {
             type = 'user';

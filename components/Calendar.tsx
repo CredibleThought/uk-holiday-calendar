@@ -36,7 +36,7 @@ const Calendar: React.FC<CalendarProps> = ({ year, publicHolidays, schoolHoliday
 
         // Categorize
         const hasStandard = matchingSchoolHolidays.some(h => !h.isManual);
-        const hasManualSchool = matchingSchoolHolidays.some(h => h.isManual && (h.type === 'school' || h.type === 'other_school'));
+        const hasManualSchool = matchingSchoolHolidays.some(h => h.isManual && (h.type === 'school' || h.type === 'event' || h.type === 'other_school'));
 
         // Manual User (Default to user if type missing AND isManual is true, though Controls mostly sets it now)
         // Actually earlier code assumed isManual -> User. Now we have types.
@@ -136,7 +136,7 @@ const Calendar: React.FC<CalendarProps> = ({ year, publicHolidays, schoolHoliday
           {/* Manual School Holidays (Imported) */}
           <div className="flex flex-col gap-1.5">
             <div className="flex items-center border border-emerald-300 bg-emerald-200 px-4 py-1.5 print:px-2 print:py-1 text-sm print:text-[10px] font-medium justify-center text-center dark:border-emerald-700 dark:bg-emerald-900 dark:text-emerald-100">
-              Other School ({manualSchoolCount} days)
+              Event ({manualSchoolCount} days)
             </div>
             <div className="hidden md:block text-xs text-slate-700 print:text-[9px] dark:text-slate-300 text-center">
               Manually Added / Imported
