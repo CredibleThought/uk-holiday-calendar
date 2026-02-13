@@ -139,9 +139,15 @@ const App: React.FC = () => {
           // However, the import logic does its own duplicate checking against the list we pass it.
           // If we pass [], it won't dedup against loaded defaults.
           // But `importCalendarFromUrl` returns valid holidays.
-          // We can add them to state using the functional updater to access latest state.
 
-          const result = await importCalendarFromUrl(calendarUrl, []);
+          let decodedUrl = calendarUrl;
+          try {
+            decodedUrl = decodeURIComponent(calendarUrl);
+          } catch (e) {
+            console.warn('Failed to decode calendar URL, using raw:', e);
+          }
+
+          const result = await importCalendarFromUrl(decodedUrl, []);
           // We pass empty array for "existing" to the utility, but we will handle deduping when adding to state below.
           // Actually, the utility uses the passed array to check for duplicates. 
           // If we want to dedup against *eventually* loaded defaults, we might have an issue if this runs faster or slower.
