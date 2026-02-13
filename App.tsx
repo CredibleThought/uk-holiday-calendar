@@ -160,12 +160,17 @@ const App: React.FC = () => {
               });
               return combined.sort((a, b) => a.startDate.localeCompare(b.startDate));
             });
-            // Optional: Alert success? Or just be silent?
-            // "automatically fetch" implies seamlessness.
+            // Notify user of success
+            // Use a small timeout to let the UI render first if needed, though alert blocks.
+            setTimeout(() => alert(`Successfully auto-imported ${result.count} events!`), 100);
             console.log(`Auto-imported ${result.count} events from URL.`);
+          } else if (!result.success) {
+            // Notify user of failure
+            setTimeout(() => alert(`Failed to auto-import calendar: ${result.message}`), 100);
           }
-        } catch (err) {
+        } catch (err: any) {
           console.error("Failed to auto-import from URL param", err);
+          setTimeout(() => alert(`Error auto-importing calendar: ${err.message}`), 100);
         } finally {
           setLoading(false);
         }

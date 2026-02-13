@@ -26,19 +26,34 @@ export const importCalendarFromUrl = async (
             targetUrl = targetUrl.replace(/\.html$/, '.ics');
         }
 
-        // 2. Fetch via Public Proxy (Try corsproxy.io first, then allorigins.win)
+        // 2. Fetch via Public Proxy
+        // Strategy: corsproxy.io -> allorigins.win -> codetabs.com
         let icsData = '';
         try {
+            console.log('Attempting corsproxy.io...');
             const proxyUrl = `https://corsproxy.io/?${encodeURIComponent(targetUrl)}`;
             const response = await fetch(proxyUrl);
             if (!response.ok) throw new Error(`corsproxy.io failed (${response.status})`);
             icsData = await response.text();
-        } catch (e) {
-            console.warn('corsproxy.io failed, trying allorigins.win...', e);
-            const fallbackProxyUrl = `https://api.allorigins.win/raw?url=${encodeURIComponent(targetUrl)}`;
-            const fallbackResponse = await fetch(fallbackProxyUrl);
-            if (!fallbackResponse.ok) throw new Error(`allorigins.win also failed (${fallbackResponse.status})`);
-            icsData = await fallbackResponse.text();
+        } catch (e1) {
+            console.warn('corsproxy.io failed, trying allorigins.win...', e1);
+            try {
+                const fallbackProxyUrl = `https://api.allorigins.win/raw?url=${encodeURIComponent(targetUrl)}`;
+                const fallbackResponse = await fetch(fallbackProxyUrl);
+                if (!fallbackResponse.ok) throw new Error(`allorigins.win also failed (${fallbackResponse.status})`);
+                icsData = await fallbackResponse.text();
+            } catch (e2) {
+                console.warn('allorigins.win failed, trying codetabs...', e2);
+                try {
+                    const codeTabsUrl = `https://api.codetabs.com/v1/proxy?quest=${encodeURIComponent(targetUrl)}`;
+                    const codeTabsResponse = await fetch(codeTabsUrl);
+                    if (!codeTabsResponse.ok) throw new Error(`codetabs failed (${codeTabsResponse.status})`);
+                    icsData = await codeTabsResponse.text();
+                } catch (e3) {
+                    console.error('All proxies failed.', e3);
+                    throw new Error('All CORS proxies failed to fetch the calendar. The URL may be blocked or invalid.');
+                }
+            }
         }
 
         // Simple validation check
