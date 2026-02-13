@@ -161,8 +161,7 @@ const App: React.FC = () => {
               return combined.sort((a, b) => a.startDate.localeCompare(b.startDate));
             });
             // Notify user of success
-            // Use a small timeout to let the UI render first if needed, though alert blocks.
-            setTimeout(() => alert(`Successfully auto-imported ${result.count} events!`), 100);
+            // Console log is enough for success, alert is too intrusive for auto-load
             console.log(`Auto-imported ${result.count} events from URL.`);
           } else if (!result.success) {
             // Notify user of failure

@@ -59,7 +59,9 @@ export const importCalendarFromUrl = async (
         // Simple validation check
         if (!icsData.includes('BEGIN:VCALENDAR')) {
             console.error('Invalid ICS Data Received:', icsData.substring(0, 500));
-            throw new Error('Invalid calendar file format or content. The URL might be blocked or invalid.');
+            // Provide a hint to the user about what we got instead
+            const preview = icsData.substring(0, 100).replace(/\n/g, ' ');
+            throw new Error(`Invalid calendar data. Received: "${preview}...". Please ensure you are using the "iCal" or "ICS" link, not the "HTML" or "Embed" link.`);
         }
 
         const jcalData = ICAL.parse(icsData);
