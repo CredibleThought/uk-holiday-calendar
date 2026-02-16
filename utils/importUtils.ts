@@ -80,7 +80,11 @@ export const importCalendarFromUrl = async (
             const summary = event.summary;
 
             // Exclusion Logic
-            if (summary.toLowerCase().includes('re-open') || summary.toLowerCase().includes('reopen') || summary.toLowerCase().includes('school opens')) {
+            if (summary.toLowerCase().includes('re-open') ||
+                summary.toLowerCase().includes('reopen') ||
+                summary.toLowerCase().includes('school opens') ||
+                summary.toLowerCase().includes('success! you\'re connected')
+            ) {
                 return;
             }
 
@@ -94,6 +98,14 @@ export const importCalendarFromUrl = async (
                 };
 
                 const startDate = formatIcalDate(startDateIcal);
+
+                // Extract Time if not all-day
+                let eventTime: string | undefined;
+                if (!startDateIcal.isDate) {
+                    const h = String(startDateIcal.hour).padStart(2, '0');
+                    const m = String(startDateIcal.minute).padStart(2, '0');
+                    eventTime = `${h}:${m}`;
+                }
 
                 // Handle Exclusive End Date
                 const endDateObj = endDateIcal.clone();
@@ -113,16 +125,32 @@ export const importCalendarFromUrl = async (
 
                 if (isDuplicate) return;
 
-                // Smart Classification
                 const keywords = ['half term', 'break', 'holiday', 'easter', 'christmas', 'winter', 'spring', 'summer'];
                 const isStandardLike = keywords.some(k => summary.toLowerCase().includes(k));
+
+                // Extract details (Competition Name) from Description
+                // Format: "Premier League | Matchweek 2..." -> "Premier League"
+                let details: string | undefined;
+                const description = event.description;
+                if (description) {
+                    const parts = description.split('|');
+                    if (parts.length > 0) {
+                        details = parts[0].trim();
+                        // Filter out "Manage my ECAL" if it's the only thing there
+                        if (details.startsWith('Manage my ECAL')) {
+                            details = undefined;
+                        }
+                    }
+                }
 
                 newHolidays.push({
                     startDate,
                     endDate,
                     term: summary,
                     isManual: !isStandardLike,
-                    type: !isStandardLike ? 'event' : 'school'
+                    type: !isStandardLike ? 'event' : 'school',
+                    time: eventTime,
+                    details: details // Add details
                 });
                 addedCount++;
             };

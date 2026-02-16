@@ -14,6 +14,8 @@ export interface SchoolHoliday {
   term: string;
   isManual?: boolean;
   type?: 'school' | 'user' | 'event' | 'other_school'; // other_school is legacy
+  time?: string; // Optional time string (HH:mm) for non-all-day events
+  details?: string; // Optional details (e.g. competition name)
 }
 
 export interface CalendarData {

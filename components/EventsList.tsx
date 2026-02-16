@@ -11,7 +11,7 @@ interface EventsListProps {
 const EventsList: React.FC<EventsListProps> = ({ year, publicHolidays, schoolHolidays }) => {
   // Combine and sort events
   const allEvents = React.useMemo(() => {
-    const events: { date: string; title: string; type: 'public' | 'school-standard' | 'school-manual' | 'user'; endDate?: string }[] = [];
+    const events: { date: string; title: string; type: 'public' | 'school-standard' | 'school-manual' | 'user'; endDate?: string; time?: string; details?: string }[] = [];
 
     // Public Holidays
     publicHolidays.forEach(h => {
@@ -44,7 +44,9 @@ const EventsList: React.FC<EventsListProps> = ({ year, publicHolidays, schoolHol
           date: h.startDate,
           endDate: h.endDate,
           title: h.term,
-          type: type
+          type: type,
+          time: h.time, // Pass time
+          details: h.details // Pass details
         });
       }
     });
@@ -76,7 +78,11 @@ const EventsList: React.FC<EventsListProps> = ({ year, publicHolidays, schoolHol
       <div className="space-y-2">
         {allEvents.map((event, index) => (
           <div key={index} className={`p-2 rounded-md border-l-4 ${getTypeStyle(event.type)} flex flex-col sm:flex-row sm:items-center justify-between shadow-sm print:shadow-none print:border`}>
-            <div className="font-medium text-base print:text-sm">{event.title}</div>
+            <div className="font-medium text-base print:text-sm">
+              {event.time && <span className="font-bold mr-2">{event.time}</span>}
+              {event.title}
+              {event.details && <div className="text-sm font-normal text-slate-600 dark:text-slate-400 mt-0.5">{event.details}</div>}
+            </div>
             <div className="text-sm font-mono opacity-90 print:text-xs whitespace-nowrap opacity-75">
               {formatEventDate(event.date)}
               {event.endDate && event.endDate !== event.date && (

@@ -98,7 +98,10 @@ const Month: React.FC<MonthProps> = ({ year, monthIndex, publicHolidays, schoolH
             } else {
               suffix = ' (School Holiday)';
             }
-            allEvents.push(`${h.term}${suffix}`);
+
+            const timePrefix = h.time ? `${h.time} ` : '';
+            const detailsSuffix = h.details ? ` (${h.details})` : '';
+            allEvents.push(`${timePrefix}${h.term}${suffix}${detailsSuffix}`);
           });
 
           // Deduplicate if needed (though unlikely to have exact duplicates unless data issue)
