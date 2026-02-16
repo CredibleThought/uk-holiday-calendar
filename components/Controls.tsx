@@ -1,6 +1,6 @@
 import React, { useState, useRef } from 'react';
 import { Country, SchoolHoliday, Theme } from '../types';
-import { Search, Printer, Edit2, Plus, Trash2, ExternalLink, ChevronDown, ChevronUp, Save, X, Download, Upload, Sun, Moon, CalendarPlus, List } from 'lucide-react';
+import { Search, Printer, Edit2, Plus, Trash2, ExternalLink, ChevronDown, ChevronUp, Save, X, Download, Upload, Sun, Moon, CalendarPlus, List, GraduationCap } from 'lucide-react';
 import { generateGoogleCalendarLink, generateOutlookLink, generateOffice365Link, generateIcsContent } from '../utils/calendarUtils';
 import { importCalendarFromUrl } from '../utils/importUtils';
 
@@ -38,6 +38,8 @@ interface ControlsProps {
   filteredHolidays: SchoolHoliday[];
   showEventsList: boolean;
   setShowEventsList: (show: boolean) => void;
+  showSchoolHolidays: boolean;
+  setShowSchoolHolidays: (show: boolean) => void;
 }
 
 
@@ -73,6 +75,8 @@ const Controls: React.FC<ControlsProps> = ({
   filteredHolidays,
   showEventsList,
   setShowEventsList,
+  showSchoolHolidays,
+  setShowSchoolHolidays,
 }) => {
   // Local state removed, using props now
 
@@ -249,6 +253,16 @@ const Controls: React.FC<ControlsProps> = ({
           >
             <List size={16} />
             <span className="hidden sm:inline">Events List</span>
+          </button>
+
+          {/* School Holidays Toggle */}
+          <button
+            onClick={() => setShowSchoolHolidays(!showSchoolHolidays)}
+            className={`flex items-center gap-2 px-3 py-2 rounded-md transition-all border ${showSchoolHolidays ? 'bg-indigo-50 border-indigo-200 text-indigo-700 dark:bg-indigo-900/40 dark:border-indigo-700 dark:text-indigo-100' : 'bg-white border-slate-300 text-slate-700 hover:bg-slate-50 dark:bg-slate-600 dark:border-slate-500 dark:text-white dark:hover:bg-slate-500'}`}
+            title="Toggle School Holidays"
+          >
+            <GraduationCap size={16} />
+            <span className="hidden sm:inline">School</span>
           </button>
 
           {/* Print */}

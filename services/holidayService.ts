@@ -73,79 +73,79 @@ const FALLBACK_DATA: Record<Country, Holiday[]> = {
 // England & Wales Defaults (Based on Hillingdon Council)
 const HILLINGDON_SCHOOL_HOLIDAYS: SchoolHoliday[] = [
   // 2024-2025 Academic Year
-  { startDate: '2024-12-23', endDate: '2025-01-03', term: 'Christmas Break' },
-  { startDate: '2025-02-17', endDate: '2025-02-21', term: 'February Half Term' },
-  { startDate: '2025-04-07', endDate: '2025-04-21', term: 'Easter Break' },
-  { startDate: '2025-05-26', endDate: '2025-05-30', term: 'May Half Term' },
-  { startDate: '2025-07-23', endDate: '2025-08-31', term: 'Summer Break' },
+  { startDate: '2024-12-23', endDate: '2025-01-03', term: 'Christmas Break', type: 'school' },
+  { startDate: '2025-02-17', endDate: '2025-02-21', term: 'February Half Term', type: 'school' },
+  { startDate: '2025-04-07', endDate: '2025-04-21', term: 'Easter Break', type: 'school' },
+  { startDate: '2025-05-26', endDate: '2025-05-30', term: 'May Half Term', type: 'school' },
+  { startDate: '2025-07-23', endDate: '2025-08-31', term: 'Summer Break', type: 'school' },
 
   // 2025-2026 Academic Year
-  { startDate: '2025-10-27', endDate: '2025-10-31', term: 'October Half Term' },
-  { startDate: '2025-12-22', endDate: '2026-01-02', term: 'Christmas Break' },
-  { startDate: '2026-02-16', endDate: '2026-02-20', term: 'February Half Term' },
-  { startDate: '2026-03-30', endDate: '2026-04-10', term: 'Easter Break' },
-  { startDate: '2026-05-25', endDate: '2026-05-29', term: 'May Half Term' },
-  { startDate: '2026-07-22', endDate: '2026-09-01', term: 'Summer Break' },
+  { startDate: '2025-10-27', endDate: '2025-10-31', term: 'October Half Term', type: 'school' },
+  { startDate: '2025-12-22', endDate: '2026-01-02', term: 'Christmas Break', type: 'school' },
+  { startDate: '2026-02-16', endDate: '2026-02-20', term: 'February Half Term', type: 'school' },
+  { startDate: '2026-03-30', endDate: '2026-04-10', term: 'Easter Break', type: 'school' },
+  { startDate: '2026-05-25', endDate: '2026-05-29', term: 'May Half Term', type: 'school' },
+  { startDate: '2026-07-22', endDate: '2026-09-01', term: 'Summer Break', type: 'school' },
 
   // Start of 2026-2027
-  { startDate: '2026-10-26', endDate: '2026-10-30', term: 'October Half Term' },
-  { startDate: '2026-12-21', endDate: '2027-01-01', term: 'Christmas Break' }
+  { startDate: '2026-10-26', endDate: '2026-10-30', term: 'October Half Term', type: 'school' },
+  { startDate: '2026-12-21', endDate: '2027-01-01', term: 'Christmas Break', type: 'school' }
 ];
 
 // Scotland Defaults (Based on Edinburgh Council)
 const EDINBURGH_SCHOOL_HOLIDAYS: SchoolHoliday[] = [
   // 2024-2025
-  { startDate: '2024-12-23', endDate: '2025-01-06', term: 'Christmas Break' },
-  { startDate: '2025-02-10', endDate: '2025-02-14', term: 'February Break' },
-  { startDate: '2025-04-07', endDate: '2025-04-21', term: 'Easter Break' },
-  { startDate: '2025-06-27', endDate: '2025-08-12', term: 'Summer Break' },
+  { startDate: '2024-12-23', endDate: '2025-01-06', term: 'Christmas Break', type: 'school' },
+  { startDate: '2025-02-10', endDate: '2025-02-14', term: 'February Break', type: 'school' },
+  { startDate: '2025-04-07', endDate: '2025-04-21', term: 'Easter Break', type: 'school' },
+  { startDate: '2025-06-27', endDate: '2025-08-12', term: 'Summer Break', type: 'school' },
   // 2025-2026
-  { startDate: '2025-10-13', endDate: '2025-10-20', term: 'October Break' },
-  { startDate: '2025-12-22', endDate: '2026-01-05', term: 'Christmas Break' },
-  { startDate: '2026-02-09', endDate: '2026-02-13', term: 'February Break' },
-  { startDate: '2026-04-03', endDate: '2026-04-17', term: 'Easter Break' },
-  { startDate: '2026-06-26', endDate: '2026-08-11', term: 'Summer Break' },
+  { startDate: '2025-10-13', endDate: '2025-10-20', term: 'October Break', type: 'school' },
+  { startDate: '2025-12-22', endDate: '2026-01-05', term: 'Christmas Break', type: 'school' },
+  { startDate: '2026-02-09', endDate: '2026-02-13', term: 'February Break', type: 'school' },
+  { startDate: '2026-04-03', endDate: '2026-04-17', term: 'Easter Break', type: 'school' },
+  { startDate: '2026-06-26', endDate: '2026-08-11', term: 'Summer Break', type: 'school' },
   // 2026-2027
-  { startDate: '2026-09-14', endDate: '2026-09-14', term: 'Autumn Holiday' },
-  { startDate: '2026-10-12', endDate: '2026-10-19', term: 'October Break' },
-  { startDate: '2026-12-21', endDate: '2027-01-05', term: 'Christmas Break' }
+  { startDate: '2026-09-14', endDate: '2026-09-14', term: 'Autumn Holiday', type: 'school' },
+  { startDate: '2026-10-12', endDate: '2026-10-19', term: 'October Break', type: 'school' },
+  { startDate: '2026-12-21', endDate: '2027-01-05', term: 'Christmas Break', type: 'school' }
 ];
 
 // Northern Ireland Defaults (Dept of Education NI)
 const NI_SCHOOL_HOLIDAYS: SchoolHoliday[] = [
   // 2024-2025
-  { startDate: '2024-12-23', endDate: '2025-01-02', term: 'Christmas Break' },
-  { startDate: '2025-02-13', endDate: '2025-02-14', term: 'Mid-Term Break' },
-  { startDate: '2025-04-17', endDate: '2025-04-25', term: 'Easter Break' },
-  { startDate: '2025-07-01', endDate: '2025-08-31', term: 'Summer Break' },
+  { startDate: '2024-12-23', endDate: '2025-01-02', term: 'Christmas Break', type: 'school' },
+  { startDate: '2025-02-13', endDate: '2025-02-14', term: 'Mid-Term Break', type: 'school' },
+  { startDate: '2025-04-17', endDate: '2025-04-25', term: 'Easter Break', type: 'school' },
+  { startDate: '2025-07-01', endDate: '2025-08-31', term: 'Summer Break', type: 'school' },
   // 2025-2026
-  { startDate: '2025-10-30', endDate: '2025-10-31', term: 'Halloween Break' },
-  { startDate: '2025-12-22', endDate: '2026-01-02', term: 'Christmas Break' },
-  { startDate: '2026-02-12', endDate: '2026-02-13', term: 'Mid-Term Break' },
-  { startDate: '2026-04-02', endDate: '2026-04-10', term: 'Easter Break' },
-  { startDate: '2026-07-01', endDate: '2026-08-31', term: 'Summer Break' }
+  { startDate: '2025-10-30', endDate: '2025-10-31', term: 'Halloween Break', type: 'school' },
+  { startDate: '2025-12-22', endDate: '2026-01-02', term: 'Christmas Break', type: 'school' },
+  { startDate: '2026-02-12', endDate: '2026-02-13', term: 'Mid-Term Break', type: 'school' },
+  { startDate: '2026-04-02', endDate: '2026-04-10', term: 'Easter Break', type: 'school' },
+  { startDate: '2026-07-01', endDate: '2026-08-31', term: 'Summer Break', type: 'school' }
 ];
 
 // Manchester specific dates (detected via 'M' postcode)
 const MANCHESTER_SCHOOL_HOLIDAYS: SchoolHoliday[] = [
   // 2024-2025 Academic Year
-  { startDate: '2024-12-23', endDate: '2025-01-03', term: 'Christmas Break' },
-  { startDate: '2025-02-17', endDate: '2025-02-21', term: 'February Half Term' },
-  { startDate: '2025-04-07', endDate: '2025-04-21', term: 'Easter Break' },
-  { startDate: '2025-05-26', endDate: '2025-05-30', term: 'May Half Term' },
-  { startDate: '2025-07-23', endDate: '2025-08-31', term: 'Summer Break' },
+  { startDate: '2024-12-23', endDate: '2025-01-03', term: 'Christmas Break', type: 'school' },
+  { startDate: '2025-02-17', endDate: '2025-02-21', term: 'February Half Term', type: 'school' },
+  { startDate: '2025-04-07', endDate: '2025-04-21', term: 'Easter Break', type: 'school' },
+  { startDate: '2025-05-26', endDate: '2025-05-30', term: 'May Half Term', type: 'school' },
+  { startDate: '2025-07-23', endDate: '2025-08-31', term: 'Summer Break', type: 'school' },
 
   // 2025-2026 Academic Year
-  { startDate: '2025-10-27', endDate: '2025-10-31', term: 'October Half Term' },
-  { startDate: '2025-12-22', endDate: '2026-01-02', term: 'Christmas Break' },
-  { startDate: '2026-02-16', endDate: '2026-02-20', term: 'February Half Term' },
-  { startDate: '2026-04-03', endDate: '2026-04-17', term: 'Easter Break' },
-  { startDate: '2026-05-25', endDate: '2026-05-29', term: 'May Half Term' },
-  { startDate: '2026-07-20', endDate: '2026-08-31', term: 'Summer Break' },
+  { startDate: '2025-10-27', endDate: '2025-10-31', term: 'October Half Term', type: 'school' },
+  { startDate: '2025-12-22', endDate: '2026-01-02', term: 'Christmas Break', type: 'school' },
+  { startDate: '2026-02-16', endDate: '2026-02-20', term: 'February Half Term', type: 'school' },
+  { startDate: '2026-04-03', endDate: '2026-04-17', term: 'Easter Break', type: 'school' },
+  { startDate: '2026-05-25', endDate: '2026-05-29', term: 'May Half Term', type: 'school' },
+  { startDate: '2026-07-20', endDate: '2026-08-31', term: 'Summer Break', type: 'school' },
 
   // Start of 2026-2027
-  { startDate: '2026-10-26', endDate: '2026-10-30', term: 'October Half Term' },
-  { startDate: '2026-12-21', endDate: '2027-01-04', term: 'Christmas Break' }
+  { startDate: '2026-10-26', endDate: '2026-10-30', term: 'October Half Term', type: 'school' },
+  { startDate: '2026-12-21', endDate: '2027-01-04', term: 'Christmas Break', type: 'school' }
 ];
 
 export const fetchBankHolidays = async (country: Country): Promise<Holiday[]> => {

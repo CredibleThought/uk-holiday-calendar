@@ -46,15 +46,27 @@ const App: React.FC = () => {
   const [searchText, setSearchText] = useState('');
   const [filterText, setFilterText] = useState('');
   const [showEventsList, setShowEventsList] = useState(false);
+  const [showSchoolHolidays, setShowSchoolHolidays] = useState(true);
 
   // Filter holidays logic
   const filteredHolidays = useMemo(() => {
+    console.log('Filtering holidays...', { showSchoolHolidays, count: schoolHolidays.length });
     return schoolHolidays.filter(h => {
       const yearStart = `${year}-01-01`;
       const yearEnd = `${year}-12-31`;
       // Check if holiday overlaps with the year
       const inYear = h.startDate <= yearEnd && h.endDate >= yearStart;
       if (!inYear) return false;
+
+      // Debug Log (only once per render cycle effectively)
+      if (h === schoolHolidays[0]) {
+        console.log('Filtering check:', { showSchoolHolidays, type: h.type, term: h.term });
+      }
+
+      // Filter Logic for School Holidays Toggle
+      if (!showSchoolHolidays && h.type === 'school') {
+        return false;
+      }
 
       // Filter text check
       if (!filterText) return true;
@@ -67,7 +79,7 @@ const App: React.FC = () => {
 
       return matchesFilter(searchTerms, filterText);
     });
-  }, [schoolHolidays, year, filterText]);
+  }, [schoolHolidays, year, filterText, showSchoolHolidays]);
 
   // Filter Public Holidays Logic
   const filteredPublicHolidays = useMemo(() => {
@@ -425,6 +437,8 @@ const App: React.FC = () => {
           filteredHolidays={filteredHolidays}
           showEventsList={showEventsList}
           setShowEventsList={setShowEventsList}
+          showSchoolHolidays={showSchoolHolidays}
+          setShowSchoolHolidays={setShowSchoolHolidays}
         />
 
         <div className="shadow-2xl print:shadow-none">
