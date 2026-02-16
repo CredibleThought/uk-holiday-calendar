@@ -34,19 +34,22 @@ export const importCalendarFromUrl = async (
             const response = await fetch(proxyUrl);
             if (!response.ok) throw new Error(`corsproxy.io failed (${response.status})`);
             icsData = await response.text();
-        } catch (e1) {
+        } catch (e1: any) {
+            console.warn('Proxy 1 failed:', e1.message);
             try {
                 const fallbackProxyUrl = `https://api.allorigins.win/raw?url=${encodeURIComponent(targetUrl)}`;
                 const fallbackResponse = await fetch(fallbackProxyUrl);
                 if (!fallbackResponse.ok) throw new Error(`allorigins.win also failed (${fallbackResponse.status})`);
                 icsData = await fallbackResponse.text();
-            } catch (e2) {
+            } catch (e2: any) {
+                console.warn('Proxy 2 failed:', e2.message);
                 try {
                     const codeTabsUrl = `https://api.codetabs.com/v1/proxy?quest=${encodeURIComponent(targetUrl)}`;
                     const codeTabsResponse = await fetch(codeTabsUrl);
                     if (!codeTabsResponse.ok) throw new Error(`codetabs failed (${codeTabsResponse.status})`);
                     icsData = await codeTabsResponse.text();
-                } catch (e3) {
+                } catch (e3: any) {
+                    console.error('All proxies failed:', e3.message);
                     throw new Error('All CORS proxies failed to fetch the calendar. The URL may be blocked or invalid.');
                 }
             }
