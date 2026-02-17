@@ -109,7 +109,7 @@ const Controls: React.FC<ControlsProps> = ({
       } else {
         onAddHoliday({ ...newHoliday, isManual: true, type: newHoliday.type || 'user' });
       }
-      setNewHoliday({ startDate: '', endDate: '', term: '', isManual: true, type: 'user' });
+      setNewHoliday({ startDate: '', endDate: '', term: '', time: '', isManual: true, type: 'user' });
     }
   };
 
@@ -131,7 +131,7 @@ const Controls: React.FC<ControlsProps> = ({
   };
 
   const cancelEdit = () => {
-    setNewHoliday({ startDate: '', endDate: '', term: '', isManual: true, type: 'user' });
+    setNewHoliday({ startDate: '', endDate: '', term: '', time: '', isManual: true, type: 'user' });
     setEditingHoliday(null);
   };
 
@@ -282,7 +282,7 @@ const Controls: React.FC<ControlsProps> = ({
           <div className="flex flex-col md:flex-row gap-8">
 
             {/* Left: Instructions & External Link */}
-            <div className="md:w-1/3 space-y-4">
+            <div className="md:w-1/4 space-y-4">
               <h3 className="font-semibold text-slate-800 flex items-center gap-2">
                 <span className="bg-blue-100 text-blue-800 text-xs font-bold px-2 py-1 rounded">Step 1</span>
                 Find Official Dates
@@ -301,7 +301,7 @@ const Controls: React.FC<ControlsProps> = ({
             </div>
 
             {/* Right: Manual Entry Form & List */}
-            <div className="md:w-2/3 space-y-4 border-l border-slate-200 pl-0 md:pl-8">
+            <div className="md:w-3/4 space-y-4 border-l border-slate-200 pl-0 md:pl-8">
               <h3 className="font-semibold text-slate-800 flex items-center gap-2">
                 <span className="bg-blue-100 text-blue-800 text-xs font-bold px-2 py-1 rounded">Step 2</span>
                 Add / Edit Holidays ({year})
@@ -326,6 +326,15 @@ const Controls: React.FC<ControlsProps> = ({
                     required
                     value={newHoliday.endDate}
                     onChange={e => setNewHoliday({ ...newHoliday, endDate: e.target.value })}
+                    className="w-full p-2 text-sm border border-slate-300 rounded"
+                  />
+                </div>
+                <div className="sm:col-span-1">
+                  <label className="block text-xs font-medium text-slate-500 mb-1">Time</label>
+                  <input
+                    type="time"
+                    value={newHoliday.time || ''}
+                    onChange={e => setNewHoliday({ ...newHoliday, time: e.target.value })}
                     className="w-full p-2 text-sm border border-slate-300 rounded"
                   />
                 </div>
@@ -460,8 +469,8 @@ const Controls: React.FC<ControlsProps> = ({
                         return (
                           <tr key={idx} className={`hover:bg-slate-50 ${isEditing ? 'bg-blue-50' : ''}`}>
                             <td className="p-2 pl-4 font-medium text-slate-700">{h.term}</td>
-                            <td className="p-2 text-slate-600">{h.startDate}</td>
-                            <td className="p-2 text-slate-600">{h.endDate}</td>
+                            <td className="p-2 text-slate-600 whitespace-nowrap">{h.startDate}</td>
+                            <td className="p-2 text-slate-600 whitespace-nowrap">{h.endDate}</td>
                             <td className="p-2 text-right pr-4 flex justify-end gap-1">
                               <div className="relative">
                                 <button
