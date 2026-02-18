@@ -151,12 +151,9 @@ const App: React.FC = () => {
         setLoading(true);
 
         try {
-          let decodedUrl = calendarUrl;
-          try {
-            decodedUrl = decodeURIComponent(calendarUrl);
-          } catch (e) {
-            console.warn('Failed to decode calendar URL, using raw:', e);
-          }
+          // Decode unnecessary as params.get() handles standard encoding. 
+          // Trim to safe-guard against copy-paste whitespace which causes fetch failures.
+          const decodedUrl = calendarUrl.trim();
 
           // Pass current schoolHolidays (which now contains defaults) to avoid duplicates
           const result = await importCalendarFromUrl(decodedUrl, schoolHolidays);

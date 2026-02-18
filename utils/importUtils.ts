@@ -14,7 +14,7 @@ export const importCalendarFromUrl = async (
 ): Promise<ImportResult> => {
     try {
         // 1. URL Normalization
-        let targetUrl = url;
+        let targetUrl = url.trim();
 
         // Handle webcal:// protocol
         if (targetUrl.startsWith('webcal://')) {
