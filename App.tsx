@@ -143,7 +143,8 @@ const App: React.FC = () => {
     urlImportAttemptedRef.current = true;
 
     const params = new URLSearchParams(window.location.search);
-    const calendarUrl = params.get('calendarUrl');
+    // thorough check for case-insensitive parameter
+    const calendarUrl = params.get('calendarUrl') || params.get('calendarurl');
 
     if (calendarUrl) {
       const handleUrlImport = async () => {
