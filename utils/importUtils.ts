@@ -108,7 +108,7 @@ export const processIcsData = (
                     isManual: !isStandardLike,
                     type: !isStandardLike ? 'event' : 'school',
                     time: eventTime,
-                    details: details // Add details
+                    details: details || '' // Add details (default to empty string to ensure persistence)
                 });
                 addedCount++;
             };

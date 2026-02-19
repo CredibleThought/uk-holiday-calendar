@@ -112,7 +112,7 @@ const Controls: React.FC<ControlsProps> = ({
       } else {
         onAddHoliday({ ...newHoliday, isManual: true, type: newHoliday.type || 'user' });
       }
-      setNewHoliday({ startDate: '', endDate: '', term: '', time: '', isManual: true, type: 'user' });
+      setNewHoliday({ startDate: '', endDate: '', term: '', time: '', isManual: true, type: 'user', details: '' });
     }
   };
 
@@ -129,12 +129,12 @@ const Controls: React.FC<ControlsProps> = ({
       inferredType = 'school';
     }
 
-    setNewHoliday({ ...holiday, type: inferredType });
+    setNewHoliday({ ...holiday, type: inferredType, details: holiday.details || '' });
     setEditingHoliday(holiday);
   };
 
   const cancelEdit = () => {
-    setNewHoliday({ startDate: '', endDate: '', term: '', time: '', isManual: true, type: 'user' });
+    setNewHoliday({ startDate: '', endDate: '', term: '', time: '', isManual: true, type: 'user', details: '' });
     setEditingHoliday(null);
   };
 
@@ -349,6 +349,16 @@ const Controls: React.FC<ControlsProps> = ({
                     required
                     value={newHoliday.term}
                     onChange={e => setNewHoliday({ ...newHoliday, term: e.target.value })}
+                    className="w-full p-2 text-sm border border-slate-300 rounded"
+                  />
+                </div>
+                <div className="sm:col-span-2">
+                  <label className="block text-xs font-medium text-slate-500 mb-1">Details / Competition</label>
+                  <input
+                    type="text"
+                    placeholder="e.g. Premier League"
+                    value={newHoliday.details || ''}
+                    onChange={e => setNewHoliday({ ...newHoliday, details: e.target.value })}
                     className="w-full p-2 text-sm border border-slate-300 rounded"
                   />
                 </div>

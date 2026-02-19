@@ -17,7 +17,7 @@ const App: React.FC = () => {
 
   // Manual Entry State (Lifted from Controls)
   const [showManual, setShowManual] = useState(false);
-  const [newHoliday, setNewHoliday] = useState<SchoolHoliday>({ startDate: '', endDate: '', term: '', isManual: true, type: 'user' });
+  const [newHoliday, setNewHoliday] = useState<SchoolHoliday>({ startDate: '', endDate: '', term: '', isManual: true, type: 'user', details: '' });
   const [editingHoliday, setEditingHoliday] = useState<SchoolHoliday | null>(null);
 
   useEffect(() => {
