@@ -2,7 +2,7 @@ import React, { useState, useRef } from 'react';
 import { Country, SchoolHoliday, Theme } from '../types';
 import { Search, Printer, Edit2, Plus, Trash2, ExternalLink, ChevronDown, ChevronUp, Save, X, Download, Upload, Sun, Moon, CalendarPlus, List, GraduationCap } from 'lucide-react';
 import { generateGoogleCalendarLink, generateOutlookLink, generateOffice365Link, generateIcsContent } from '../utils/calendarUtils';
-import { importCalendarFromUrl } from '../utils/importUtils';
+import { importCalendarFromUrl, processIcsData } from '../utils/importUtils';
 
 interface ControlsProps {
   year: number;
@@ -80,8 +80,11 @@ const Controls: React.FC<ControlsProps> = ({
 }) => {
   // Local state removed, using props now
 
-  // Ref for the hidden file input
+  // Ref for the hidden file input (Config Load)
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  // Ref for the hidden file input (Calendar Import)
+  const fileImportInputRef = useRef<HTMLInputElement>(null);
 
   // Import Status State
   const [importStatus, setImportStatus] = useState<'idle' | 'loading' | 'success' | 'error'>('idle');
@@ -566,7 +569,57 @@ const Controls: React.FC<ControlsProps> = ({
       {!showManual && (
         <div className="mt-4 space-y-4">
           {/* Import Section */}
-          <div className="bg-blue-50 p-4 rounded-md border border-blue-200 dark:bg-blue-900/20 dark:border-blue-800">
+          <div
+            className={`bg-blue-50 p-4 rounded-md border transition-colors ${importStatus === 'loading' ? 'border-blue-200' : 'border-blue-200 hover:border-blue-400'} dark:bg-blue-900/20 dark:border-blue-800`}
+            onDragOver={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              e.currentTarget.classList.add('border-blue-500', 'bg-blue-100', 'dark:bg-blue-900/40');
+            }}
+            onDragLeave={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              e.currentTarget.classList.remove('border-blue-500', 'bg-blue-100', 'dark:bg-blue-900/40');
+            }}
+            onDrop={async (e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              e.currentTarget.classList.remove('border-blue-500', 'bg-blue-100', 'dark:bg-blue-900/40');
+
+              const file = e.dataTransfer.files[0];
+              if (file && (file.name.endsWith('.ics') || file.type.includes('calendar'))) {
+                const reader = new FileReader();
+                setImportStatus('loading');
+                setImportMessage('Reading file...');
+
+                reader.onload = async (event) => {
+                  try {
+                    const content = event.target?.result as string;
+                    // Use the newly imported processIcsData
+                    const result = processIcsData(content, schoolHolidays);
+
+                    if (result.success) {
+                      if (onAddHolidays) {
+                        onAddHolidays(result.holidays);
+                      } else {
+                        result.holidays.forEach(h => onAddHoliday(h));
+                      }
+                      setImportStatus('success');
+                      setImportMessage(result.message);
+                      setTimeout(() => { setImportStatus('idle'); setImportMessage(''); }, 5000);
+                    } else {
+                      throw new Error(result.message);
+                    }
+                  } catch (err: any) {
+                    console.error(err);
+                    setImportStatus('error');
+                    setImportMessage(err.message || 'Failed to parse file.');
+                  }
+                };
+                reader.readAsText(file);
+              }
+            }}
+          >
             <h3 className="font-semibold text-blue-900 dark:text-blue-100 flex items-center gap-2 mb-3">
               <Download size={18} />
               Import Calendar (Outlook / Google / ICS)
@@ -574,23 +627,91 @@ const Controls: React.FC<ControlsProps> = ({
             <div className="flex flex-col sm:flex-row gap-3">
               <input
                 type="text"
-                placeholder="Paste Outlook, Google, or WebCal URL"
-                className="flex-1 p-2 text-sm border border-blue-300 rounded outline-none focus:ring-2 focus:ring-blue-500 dark:bg-slate-800 dark:border-slate-600 dark:text-white"
+                placeholder="Paste URL, ICS content, or drag & drop .ics file here..."
+                className="flex-1 p-2 text-sm border border-blue-300 rounded outline-none focus:ring-2 focus:ring-blue-500 dark:bg-slate-800 dark:border-slate-600 dark:text-white placeholder:text-slate-400"
                 id="outlook-url-input"
                 disabled={importStatus === 'loading'}
               />
+
+              {/* Hidden File Input for "Browse" fallback */}
+              <input
+                type="file"
+                ref={fileImportInputRef}
+                className="hidden"
+                accept=".ics,text/calendar"
+                onChange={async (e) => {
+                  const file = e.target.files?.[0];
+                  if (!file) return;
+
+                  const reader = new FileReader();
+                  setImportStatus('loading');
+                  setImportMessage('Reading file...');
+
+                  reader.onload = async (event) => {
+                    try {
+                      const content = event.target?.result as string;
+                      const result = processIcsData(content, schoolHolidays);
+
+                      if (result.success) {
+                        if (onAddHolidays) {
+                          onAddHolidays(result.holidays);
+                        } else {
+                          result.holidays.forEach(h => onAddHoliday(h));
+                        }
+                        setImportStatus('success');
+                        setImportMessage(result.message);
+                        setTimeout(() => { setImportStatus('idle'); setImportMessage(''); }, 5000);
+                      } else {
+                        throw new Error(result.message);
+                      }
+                    } catch (err: any) {
+                      setImportStatus('error');
+                      setImportMessage(err.message || 'Failed to parse file.');
+                    }
+                    // Reset input
+                    if (fileImportInputRef.current) fileImportInputRef.current.value = '';
+                  };
+                  reader.readAsText(file);
+                }}
+              />
+
               <button
                 onClick={async () => {
                   const input = document.getElementById('outlook-url-input') as HTMLInputElement;
-                  const url = input.value.trim();
-                  if (!url) return;
+                  const value = input.value.trim();
+
+                  // Scenario C: Empty Input -> Open File Picker
+                  if (!value) {
+                    fileImportInputRef.current?.click();
+                    return;
+                  }
 
                   setImportStatus('loading');
                   setImportMessage('');
 
                   try {
+                    // Scenario B: Raw ICS Content
+                    if (value.startsWith('BEGIN:VCALENDAR')) {
+                      const result = processIcsData(value, schoolHolidays);
+                      if (result.success) {
+                        if (onAddHolidays) {
+                          onAddHolidays(result.holidays);
+                        } else {
+                          result.holidays.forEach(h => onAddHoliday(h));
+                        }
+                        setImportStatus('success');
+                        setImportMessage(result.message);
+                        input.value = ''; // Clear input on success
+                        setTimeout(() => { setImportStatus('idle'); setImportMessage(''); }, 5000);
+                      } else {
+                        throw new Error(result.message);
+                      }
+                      return;
+                    }
+
+                    // Scenario A: URL Import (Existing Logic)
                     // 1. URL Normalization & Fetch
-                    const result = await importCalendarFromUrl(url.trim(), schoolHolidays);
+                    const result = await importCalendarFromUrl(value, schoolHolidays);
 
                     if (result.success) {
                       if (onAddHolidays) {
@@ -642,7 +763,7 @@ const Controls: React.FC<ControlsProps> = ({
               </div>
             )}
             <p className="text-xs text-blue-800 dark:text-blue-300 mt-2">
-              <strong>Note:</strong> This uses public proxies (corsproxy.io, allorigins.win) to bypass CORS restrictions.
+              <strong>Tip:</strong> Paste a URL, raw ICS text, or <strong>drag & drop</strong> a .ics file here. Leave empty and click "Fetch" to browse files.
             </p>
           </div>
 
