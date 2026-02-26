@@ -143,10 +143,10 @@ const Controls: React.FC<ControlsProps> = ({
   return (
     <div className="bg-white p-6 rounded-lg shadow-sm border border-slate-200 mb-8 no-print dark:bg-slate-800 dark:border-slate-700">
       {/* Top Row: Basic Controls */}
-      <div className="flex flex-col md:flex-row gap-6 items-end mb-6">
+      <div className="flex flex-col md:flex-row flex-wrap gap-6 items-end mb-6">
 
         {/* Year Selection */}
-        <div className="w-full md:w-32">
+        <div className="w-full md:w-32 flex-shrink-0">
           <label className="block text-sm font-medium text-slate-700 mb-1 dark:text-slate-300">Year</label>
           <div className="relative">
             <input
@@ -159,12 +159,12 @@ const Controls: React.FC<ControlsProps> = ({
         </div>
 
         {/* Country Selection */}
-        <div className="w-full md:w-64">
+        <div className="w-full md:w-auto md:min-w-[16rem] flex-shrink-0">
           <label className="block text-sm font-medium text-slate-700 mb-1 dark:text-slate-300">Country (Public Holidays)</label>
           <select
             value={country}
             onChange={(e) => onCountryChange(e.target.value as Country)}
-            className="w-full pl-3 pr-10 py-2 border border-slate-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none bg-white dark:bg-slate-700 dark:border-slate-600 dark:text-white"
+            className="w-full pl-3 pr-8 py-2 border border-slate-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none bg-white dark:bg-slate-700 dark:border-slate-600 dark:text-white"
           >
             <option value="england-and-wales">England & Wales</option>
             <option value="scotland">Scotland</option>
@@ -198,8 +198,11 @@ const Controls: React.FC<ControlsProps> = ({
           </div>
         </div>
 
+        {/* Spacer to push buttons to the right when inline, but allows left alignment when wrapped */}
+        <div className="hidden md:block flex-1 min-w-0" />
+
         {/* Action Buttons */}
-        <div className="ml-auto flex flex-wrap gap-2 md:gap-3">
+        <div className="flex flex-wrap gap-2 md:gap-3">
           {/* Theme Toggle */}
           <button
             onClick={() => onThemeChange(theme === 'light' ? 'dark' : 'light')}
